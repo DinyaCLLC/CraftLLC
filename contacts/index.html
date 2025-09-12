@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="На сайті CraftLLC, ви знайдете корисні рецепти. І всі перевірені!">
+    <meta name="keywords" content="CraftLLC, craftllc.pages.dev, Site, Сайт, Рецепти, Бабуся.">
+    <meta name="robots" content="index, follow">
+    <title>Контакти — CraftLLC</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #141414;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding-top: 20px;
+        }
+        button {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            width: 90%;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        h1, h2 {
+            margin: 20px 0;
+        }
+        p {
+            margin: 10px 0;
+        }
+        a {
+            text-decoration: none;
+            color: white;
+        }
+        /* Лоадер */
+        #loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #141414;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loader {
+            width: 50px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: 
+                radial-gradient(farthest-side,#ffa516 94%,#0000) top/8px 8px no-repeat,
+                conic-gradient(#0000 30%,#ffa516);
+            -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
+            animation: l13 1s infinite linear;
+        }
+        @keyframes l13{ 
+            100%{transform: rotate(1turn)}
+        }
+        .footer {
+            margin: 0;
+            padding: 40px 0;
+            background-color: #161616;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .footer .social {
+            text-align: center;
+            padding-bottom: 25px;
+            font-size: 24px;
+            text-decoration: none;
+        }
+        .footer .social a {
+            border: 1px solid #ccc;
+            border-radius: 30%;
+            width: 40px;
+            height: 40px;
+            line-height: 38px;
+            display: inline-block;
+            text-align: center;
+            margin: 0 6px;
+            opacity: 0.75;
+        }
+        .footer .social a:hover {
+            opacity: 1.0;
+        }
+        .footer .social .fa-telegram {
+            color: #29a0dc;
+        }
+        .footer .social .fa-youtube {
+            color: #ff0000;
+        }
+        .footer .copyright {
+            margin-top: 5px;
+            text-align: center;
+            font-size: 13px;
+            color: #aaa;
+        }
+    </style>
+    <header>
+        <a href="/"><button>Головна</button></a>
+        <br><br>
+        <a href="/contacts"><button>Контакти</button></a>
+        <br><br>
+        <a href="/recipes"><button>Рецепти</button></a>
+    </header>
+    <!-- Cloudflare Web Analytics -->
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "86e4717144d44d26a30bb98452c1e06b"}'></script>
+    <!-- End Cloudflare Web Analytics -->
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isLight = urlParams.get('light') === 'true';
+        if (isLight) {
+            document.body.style.background = 'none';
+            document.body.style.color = 'black';
+            document.getElementById("footerID").style.background = "#ededed";
+            const allLinks = document.querySelectorAll('a');
+            allLinks.forEach(link => {
+                link.style.color = 'black';
+                const linkUrl = new URL(link.href);
+                if (!linkUrl.searchParams.has('light')) {
+                    linkUrl.searchParams.set('light', 'true');
+                    link.href = linkUrl.toString();
+                }
+            });
+        }
+    });
+    </script>
+    <script>
+    // Коли все завантажено – ховаємо лоадер
+    window.addEventListener('load', () => {
+        const loaderWrapper = document.getElementById('loader-wrapper');
+        if (loaderWrapper) {
+            loaderWrapper.style.display = 'none';
+        }
+    });
+
+    function setSpecialDateAssets() {
+        const today = new Date();
+        const day = today.getDate();
+        const month = today.getMonth() + 1;
+
+        const favicon = document.getElementById('favicon');
+        const logo = document.getElementById('logo');
+
+        if (month === 1 && day === 1) {
+            favicon.href = '/favicon2.ico';
+            logo.src = '/logo2.png';
+        } 
+        else if (month === 3 && day === 8) {
+            favicon.href = '/favicon.ico';
+            logo.src = '/logo3.png';
+        } 
+        else if (month === 9 && day === 26) {
+            favicon.href = '/favicon_birthday.ico';
+            logo.src = '/logo_birthday.png';
+        } 
+        else {
+            favicon.href = '/favicon.ico';
+            logo.src = '/logo.png';
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", setSpecialDateAssets);
+    </script>
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #141414; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10001; text-align: center; padding: 20px;">
+            <h1>JavaScript вимкнено</h1>
+            <p>Цей сайт вимагає увімкненого JavaScript для коректної роботи.</p>
+            <p>Будь ласка, увімкніть JavaScript у налаштуваннях вашого браузера, щоб продовжити.</p>
+        </div>
+    </noscript>
+
+    <div id="loader-wrapper">
+        <div class="loader"></div>
+    </div>
+    <img src="/logo.png" width=90% id="logo"></img>
+    <h1>Контакти</h1>
+
+    <h2>Через пошту</h2>
+    <a href="mailto:craftllcompany@gmail.com"><button>craftllcompany@gmail.com</button></a>
+    <br><br><br>
+    <a href="market://details?id=com.google.android.gm"><button>Завантажити Gmail</button></a>
+    <br><br>
+    <a href="market://details?id=com.microsoft.office.outlook"><button>Завантажити Outlook</button></a>
+
+    <h2>Через Telegram</h2>
+    <a href="tg:resolve?domain=CraftLLCSupport"><button>@CraftLLCSupport</button></a>
+    <br><br>
+    <a href="market://details?id=org.telegram.messenger"><button>Завантажити Telegram</button></a>
+    <br><br><br><br>
+    <section class="footer" id="footerID">
+        <div class="social">
+            <a href="https://t.me/CraftLLC" target="_blank"><i class="fab fa-telegram"></i></a>
+            <a href="https://m.youtube.com/@CraftLLCOF" target="_blank"><i class="fab fa-youtube"></i></a>
+            <a href="https://github.com/CraftLLC" target="_blank"><i class="fab fa-github"></i></a>
+            <a href="https://x.com/NotCraftLLC" target="_blank"><i class="fab fa-x-twitter"></i></a>
+        </div>
+
+        <p class="copyright">© Андрій Рудик 2024-2025</p>
+    </section>
+    <script>
+    // Приховуємо header, якщо mainPageView=true
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mainPageView') === 'true') {
+        const header = document.querySelector('header');
+        const footer = document.getElementById('footerID');
+        const logo = document.getElementById('logo')
+        if (header) header.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        if (logo) logo.style.display = 'none';
+    }
+    </script>
+</body>
+</html>

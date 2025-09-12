@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="На сайті CraftLLC, ви знайдете корисні рецепти. І всі перевірені!">
+    <meta name="keywords" content="CraftLLC, craftllc.pages.dev, Site, Сайт, Рецепти, Бабуся.">
+    <meta name="robots" content="index, follow">
+    <title>Рецепти — CraftLLC</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" id="favicon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        #loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #141414;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .loader {
+            width: 50px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background:
+                radial-gradient(farthest-side,#ffa516 94%,#0000) top/8px 8px no-repeat,
+                conic-gradient(#0000 30%,#ffa516);
+            -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
+            animation: l13 1s infinite linear;
+        }
+        @keyframes l13{
+            100%{transform: rotate(1turn)}
+        }
+
+        body {
+            background: #141414;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding-top: 20px;
+            align-items: center;
+        }
+        input {
+            width: 90%;
+            height: 40px;
+            border: none;
+            border-radius: 10px;
+            cursor: text;
+            font-size: 16px;
+            padding: 0 10px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+        button {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            width: 90%;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .summarize-recipe-btn {
+            width: 95%;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h1, h2 {
+            margin: 20px 0;
+        }
+        p {
+            margin: 10px 0;
+        }
+        a {
+            text-decoration: none;
+            color: white;
+        }
+        .footer {
+            margin: 0;
+            padding: 40px 0;
+            background-color: #161616;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .footer .social {
+            text-align: center;
+            padding-bottom: 25px;
+            font-size: 24px;
+            text-decoration: none;
+        }
+        .footer .social a {
+            border: 1px solid #ccc;
+            border-radius: 30%;
+            width: 40px;
+            height: 40px;
+            line-height: 38px;
+            display: inline-block;
+            text-align: center;
+            margin: 0 6px;
+            opacity: 0.75;
+        }
+        .footer .social a:hover {
+            opacity: 1.0;
+        }
+        .footer .social .fa-telegram {
+            color: #29a0dc;
+        }
+        .footer .social .fa-youtube {
+            color: #ff0000;
+        }
+        .footer .copyright {
+            margin-top: 5px;
+            text-align: center;
+            font-size: 13px;
+            color: #aaa;
+        }
+        .card {
+            position: relative;
+            max-width: 420px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0px 0px 15px 0px rgba(0,0,0,.4);
+            background-color: #141414;
+            margin: 20px auto;
+            display: none;
+        }
+        .card__vid {
+            display: block;
+            width: 100%;
+            height: 240px;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        /* Styles for video placeholder */
+        .card__vid-placeholder {
+            position: relative;
+            width: 100%;
+            height: 240px;
+            background-color: #000;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card__vid-placeholder::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 68px;
+            height: 48px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 68 48"><path d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55C3.97,2.33,2.27,4.81,1.48,7.74,0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z" fill="%23ff0000" fill-opacity="0.8"></path><path d="M 45,24 27,14 27,34" fill="%23fff"></path></svg>');
+            background-repeat: no-repeat;
+            background-size: contain;
+            transition: transform 0.2s ease-out;
+        }
+
+        .card__vid-placeholder:hover::after {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        .card__body {
+            padding: 40px;
+        }
+        .card__title {
+            display: inline-block;
+            margin-bottom: 20px;
+            font-size: 21px;
+            font-weight: 700;
+            transition: color .3s;
+        }
+        .card__title:hover {
+            color: orange;
+        }
+        .card__desc {
+            font-size: 16px;
+            margin: 0;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .sort-container {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            background-color: #141414;
+            color: white;
+            width: 90%;
+            height: 40px;
+            border-style: solid;
+            border-radius: 10px;
+            border-color: orange;
+            font-size: 16px;
+            padding: 0 10px;
+            cursor: text;
+        }
+        select {
+            width: 90%;
+            height: 40px;
+            border-radius: 10px;
+            border-color: orange;
+            font-size: 16px;
+            padding: 0 10px;
+            background-color: #141414;
+            color: white;
+            cursor: pointer;
+        }
+
+        .card[data-recipeunchecked]::before {
+            content: "Не перевірено";
+            position: absolute;
+            left: 10px;
+            background-color: orange;
+            color: white;
+            padding: 5px 10px;
+            font-size: 14px;
+            font-weight: bold;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            z-index: 10;
+        }
+
+        #pagination-controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .pagination-btn {
+            background: orange;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .pagination-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        #page-info {
+            font-size: 18px;
+        }
+        #searchResultsCount {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #ffa516;
+        }
+
+        /* Styles for the new timer */
+        .card__timer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffa516; /* Orange color for the timer */
+            flex-wrap: wrap; /* Allow wrapping for smaller screens */
+        }
+
+        .card__timer span {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 8px; /* Adjust spacing between units */
+            padding: 5px;
+            background-color: rgba(255, 165, 0, 0.1); /* Light orange background */
+            border-radius: 8px;
+            min-width: 50px; /* Ensure minimum width for each unit */
+        }
+
+        .card__timer .value {
+            font-size: 1.5em; /* Larger font for the numbers */
+            margin-bottom: 3px;
+        }
+
+        .card__timer .label {
+            font-size: 0.7em; /* Smaller font for labels */
+            text-transform: uppercase;
+        }
+
+        /* Responsive adjustments for timer */
+        @media (max-width: 600px) {
+            .card__timer {
+                font-size: 1em;
+            }
+            .card__timer span {
+                margin: 0 4px;
+                min-width: 40px;
+            }
+            .card__timer .value {
+                font-size: 1.2em;
+            }
+            .card__timer .label {
+                font-size: 0.6em;
+            }
+        }
+
+        /* Styles for the cheat code modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 10000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #888;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-content input[type="text"] {
+            width: calc(100% - 20px); /* Adjust for padding */
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ffa516;
+            border-radius: 8px;
+            background-color: #333;
+            color: white;
+            font-size: 1em;
+        }
+
+        .modal-content button {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            width: auto; /* Allow button to size naturally */
+            margin: 0 5px; /* Spacing between buttons */
+        }
+
+        .modal-content button:hover {
+            opacity: 0.9;
+        }
+
+        .modal-message {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        /* Styles for the new active cheat codes modal */
+        .active-codes-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #222;
+        }
+        .active-code-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background-color: #333;
+            border-radius: 5px;
+            color: white;
+        }
+        .active-code-item:last-child {
+            margin-bottom: 0;
+        }
+        .active-code-item span {
+            flex-grow: 1;
+            text-align: left;
+            padding-left: 10px;
+        }
+        .active-code-item button {
+            width: auto;
+            padding: 5px 10px;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+    <header>
+        <a href="/"><button>Головна</button></a>
+        <br><br>
+        <a href="/contacts"><button>Контакти</button></a>
+        <br><br>
+        <a href="/recipes"><button>Рецепти</button></a>
+    </header>
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "86e4717144d44d26a30bb98452c1e06b"}'></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        console.log("DOMContentLoaded fired.");
+        const urlParams = new URLSearchParams(window.location.search);
+        const isLight = urlParams.get('light') === 'true';
+
+        if (isLight) {
+            document.body.style.background = 'none';
+            document.body.style.color = 'black';
+            const footer = document.getElementById("footerID");
+            if (footer) {
+                footer.style.background = '#aaa';
+            }
+
+            const allLinks = document.querySelectorAll('a');
+            allLinks.forEach(link => {
+                link.style.color = 'black';
+                const linkUrl = new URL(link.href);
+                if (!linkUrl.searchParams.has('light')) {
+                    linkUrl.searchParams.set('light', 'true');
+                    link.href = linkUrl.toString();
+                }
+            });
+            const searchInput = document.getElementById('recipeSearch');
+            const sortSelect = document.getElementById('recipeSort');
+            if (searchInput) {
+                searchInput.style.backgroundColor = '#f0f0f0';
+                searchInput.style.color = '#333';
+            }
+            if (sortSelect) {
+                sortSelect.style.backgroundColor = '#f0f0f0';
+                sortSelect.style.color = '#333';
+            }
+        }
+    });
+
+    window.addEventListener("load", () => {
+        const loader = document.getElementById('loader-wrapper');
+        if (loader) loader.style.display = 'none';
+    });
+
+    function setSpecialDateAssets() {
+        const today = new Date();
+        const day = today.getDate();
+        const month = today.getMonth() + 1;
+
+        const favicon = document.getElementById('favicon');
+        const logo = document.getElementById('logo');
+
+        if (month === 1 && day === 1) {
+            favicon.href = '/favicon2.ico';
+            logo.src = '/logo2.png';
+        }
+        else if (month === 3 && day === 8) {
+            favicon.href = '/favicon.ico';
+            logo.src = '/logo3.png';
+        }
+        else if (month === 9 && day === 26) {
+            favicon.href = '/favicon_birthday.ico';
+            logo.src = '/logo_birthday.png';
+        }
+        else {
+            favicon.href = '/favicon.ico';
+            logo.src = '/logo.png';
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", setSpecialDateAssets);
+    </script>
+
+<script>
+// Додайте це десь у глобальній області видимості вашого скрипту на сторінці /recipes
+window.updateRecipesDisplay = function() {
+    // Ці функції вже повинні бути визначені у вашому скрипті на сторінці /recipes
+    processRecipeCards();
+    filterAndSortRecipes();
+};
+
+// Додайте цей слухач подій у ваш скрипт на сторінці /recipes
+window.addEventListener('message', (event) => {
+    // Перевірте, що повідомлення надходить з очікуваного джерела (вашої головної сторінки)
+    if (event.origin !== window.location.origin) {
+        console.warn('Отримано повідомлення з невідомого джерела:', event.origin);
+        return;
+    }
+
+    // Обробляємо повідомлення
+    if (event.data && event.data.type === 'UPDATE_RECIPES_DISPLAY') {
+        console.log('Отримано команду UPDATE_RECIPES_DISPLAY від батьківської сторінки.');
+        // Перезавантажуємо cheatCodesUsed з localStorage, оскільки батьківська сторінка могла його змінити
+        cheatCodesUsed = JSON.parse(localStorage.getItem('cheatCodesUsed')) || {};
+        // Викликаємо функції для оновлення відображення рецептів
+        processRecipeCards();
+        filterAndSortRecipes();
+    }
+});
+
+// Також переконайтеся, що ці функції викликаються при початковому завантаженні сторінки /recipes
+document.addEventListener("DOMContentLoaded", () => {
+    // Ці функції вже повинні бути визначені у вашому скрипті на сторінці /recipes
+    processRecipeCards();
+    filterAndSortRecipes();
+});
+</script>
+
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #141414; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10001; text-align: center; padding: 20px;">
+            <h1>JavaScript вимкнено</h1>
+            <p>Цей сайт вимагає увімкненого JavaScript для коректної роботи.</p>
+            <p>Будь ласка, увімкніть JavaScript у налаштуваннях вашого браузера, щоб продовжити.</p>
+        </div>
+    </noscript>
+    
+    <div id="loader-wrapper">
+        <div class="loader"></div>
+    </div>
+    <img src="/logo.png" width="90%" id="logo" alt="Логотип CraftLLC">
+
+    <!-- Cheat Code Modal -->
+    <div id="cheatCodeModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Введіть чит-код</h2>
+            <input type="text" id="cheatCodeInput" placeholder="Ваш чит-код">
+            <button id="submitCheatCode">Підтвердити</button>
+            <button id="cancelCheatCode">Скасувати</button>
+            <p id="modalMessage" class="modal-message"></p>
+        </div>
+    </div>
+
+    <!-- Active Cheat Codes Modal -->
+    <div id="activeCheatCodesModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Активні чит-коди</h2>
+            <div id="activeCheatCodesList" class="active-codes-list">
+                <!-- Active cheat codes will be rendered here -->
+            </div>
+            <br>
+            <button id="addCheatCodeBtn">Додати чит-код</button>
+            <button id="closeActiveCheatCodesModal">Закрити</button>
+        </div>
+    </div>
+
+    <h1>Рецепти</h1>
+    <h1>Завантажити архів</h1>
+    <a href="https://github.com/CraftLLC/FilesStore/releases/download/recipes-v1.0.2/CRAFTLLC.RECIPES.1.0.2.zip"><button>Завантажити</button></a>
+    <br><br>
+    <h1>Список відтворення</h1>
+    <a href="https://youtube.com/playlist?list=PL0xBJmae_beLTo8ZoxhZVAtAH1_AVBuWj&si=A3gNpVT4yGhvHVC" target="_blank"><button>Відкрити</button></a>
+    <br><br>
+
+    <div class="search-container">
+        <input type="text" id="recipeSearch" placeholder="Пошук рецептів...">
+    </div>
+
+    <div class="sort-container">
+        <select id="recipeSort">
+            <option value="all">Всі рецепти</option>
+            <option value="cookie">Печиво</option>
+            <option value="cake">Торти</option>
+            <option value="pudding">Запіканки</option>
+            <option value="pie">Пироги</option>
+        </select>
+    </div>
+
+    <div id="searchResultsCount"></div>
+
+    <div id="recipesContainer">
+        <div class="card" data-recipetype="pie" data-tags="пиріг, яйце, яйця, цукор, сіль, сметана, борошно, розпушувач, масло, ягоди, фрукти, екстракт, ванілін, ванільний цукор" data-recipeunchecked>
+            <div class="card__vid-placeholder" data-videoid="kjciZZ3YS2g"></div>
+            <div class="card__body">
+                <a href="https://youtu.be/kjciZZ3YS2g" class="card__title" target="_blank">Літній пиріг</a>
+                <p class="card__desc">
+                    Відчуйте літо на смак з цим рецептом пирога!
+                    <br><br>
+                    Температура: 180
+                    <br>
+                    Час: 55-60 хв
+                    <br><br>
+                    Інградієнти для тіста:
+                    <br>
+                    яйце - 1 шт.
+                    <br>
+                    цукор - 50 г
+                    <br>
+                    дрібка солі
+                    <br>
+                    сметана - 50 г
+                    <br>
+                    борошно - 250 г
+                    <br>
+                    розпушувач - 1 ч.л.
+                    <br>
+                    вершкове масло - 100 г
+                    <br><br>
+                    Інградієнти для начинки:
+                    <br>
+                    ягоди/фрукти - 500 г
+                    <br>
+                    яйця - 2 шт.
+                    <br>
+                    цукор - 100 г
+                    <br>
+                    ванільний екстракт/цукор - 1 ч.л.
+                    <br>
+                    кукурудзяний крохмаль - 40 г
+                    <br>
+                    сметана - 400 г
+                    <br><br>
+                    Властивості:
+                    <br>
+                    Діаметр: 18-20 см
+                </p>
+            </div>
+        </div>
+
+
+        <div class="card" data-recipetype="cookie" data-tags="печиво, без духовки, пательня, масло, мед, яйце, борошно, розпушувач, згущенка" data-blocklistedqueries="сіль, сол" data-recipeunchecked>
+            <div class="card__vid-placeholder" data-videoid="4PFf2NGRNvI"></div>
+            <div class="card__body">
+                <a href="https://youtu.be/4PFf2NGRNvI" class="card__title" target="_blank">Печиво без духовки</a>
+                <p class="card__desc">
+                    Печиво без духовки на пательні!
+                    <br><br>
+                    Температура: Мінімальна
+                    <br>
+                    Час: Невідомо, поки не стане золотистого кольору.
+                    <br><br>
+                    Інградієнти:
+                    <br>
+                    масло - 50 г
+                    <br>
+                    мед - 100 г
+                    <br>
+                    яйце - 1 шт.
+                    <br>
+                    борошно - 300 г
+                    <br>
+                    розпушувач - 1 ч.л.
+                    <br><br>
+                    <i>мед можна замінити згущенкою</i>
+                </p>
+            </div>
+        </div>
+
+        <div class="card" data-recipetype="cake" data-tags="торт, каприз, жіночий, жіночий каприз, яйця, цукор, сметана, сіль, цукор, ванільний цукор, ванілін, сода, борошно, мак, родзинки, ізюм, горіхи, какао, чорнослив, масло, згущенка, сметана, вода" data-date="05.07.2025" data-cheatcode="MB2025C">
+            <div class="card__vid-placeholder" data-videoid="8WZ-W1o2gLQ"></div>
+            <div class="card__body">
+                <a href="https://youtu.be/8WZ-W1o2gLQ" class="card__title">Торт "Жіночий каприз"</a>
+                <p class="card__desc">
+                    Торт "Жіночий каприз" на день народження.
+                    <br><br>
+                    Температура: 180-190
+                    <br>
+                    Час: 20-25 хв
+                    <br><br>
+                    Інградієнти для тіста:
+                    <br>
+                    яйце - 1 шт.
+                    <br>
+                    цукор - 100 г
+                    <br>
+                    сметана - 120 г 20% жирності
+                    <br>
+                    дрібка солі
+                    <br>
+                    ванільний цукор - 1/4 ч.л.
+                    <br>
+                    сода - 3 г (0.5 ч.л. без горки)
+                    <br>
+                    борошно - 80 г
+                    <br><br>
+                    смакові добавки:
+                    <br>
+                    1-й корж - 50 г мака
+                    <br>
+                    2-й корж - 50 г родзинок (ізюму)
+                    <br>
+                    3-й корж - 50 г горіхів
+                    <br><br>
+                    Інградієнти для шоколадного коржа:
+                    <br>
+                    яйце - 1 шт.
+                    <br>
+                    цукор - 100 г
+                    <br>
+                    сметана - 120 г 20% жирності
+                    <br>
+                    дрібка солі
+                    <br>
+                    сода - 3 г
+                    <br>
+                    ванільний цукор - 1/4 ч.л.
+                    <br>
+                    борошно - 65 г
+                    <br>
+                    какао - 15 г
+                    <br>
+                    чорнослив (власник сайту не рекомаендує додавати) - 50 г
+                    <br><br>
+                    Інградієнти для крему:
+                    <br>
+                    масло - 200 г 73% жирності
+                    <br>
+                    згущенка - 350 г
+                    <br>
+                    сметана - 150 г
+                    <br><br>
+                    Сироп:
+                    <br>
+                    цукор - 50 г
+                    <br>
+                    вода - 75 мл
+                    <br>
+                    ванільний цукор - 1 шт.
+                    <br><br>
+                    Властивості:
+                    <br>
+                    Діаметер - 25 см
+                    <br>
+                    Висота - 8 см
+                    <br>
+                    Вага - 2 кг
+                </p>
+            </div>
+        </div>
+
+        <div class="card" data-recipetype="pie" data-tags="яйця, цукор, молоко, масло, яблука, вишні, ягоди, фрукти, борошно, розпушувач">
+            <video class="card__vid" src="pie.mp4" preload controls></video>
+            <div class="card__body">
+                <a href="https://www.pinterest.com/pin/732257220703322730" class="card__title" target="_blank">Пиріг</a>
+                <p class="card__desc">
+                    Дуже смачний рецепт пирога!
+                    <br>
+                    Цього рецепту немає на YouTube, ми знайшли його на Pinterest. Тому, якщо ви хочете переглянути пін, натисніть на назву.
+                    <br><br>
+                    Температура: 180
+                    <br>
+                    Час: 40-45 хв
+                    <br><br>
+                    Інградієнти:
+                    <br>
+                    яйця - 3 шт.
+                    <br>
+                    цукор - 150 г
+                    <br>
+                    тепле молоко - 180 мл
+                    <br>
+                    м'ягке вершкове масло - 80 г
+                    <br>
+                    яблука - 3 шт
+                    <br>
+                    борошно - 300 г
+                    <br>
+                    розпушувач - 8 г
+                    <br><br>
+                    <i>яблука можна замінити на інші фрукти/ягоди</i>
+                </p>
+            </div>
+        </div>
+
+        <div class="card" data-recipetype="cake" data-tags="торт, медовик, класичний, масло, яйця, цукор, мед, сода, борошно, сметана, пудра, сіль">
+             <div class="card__vid-placeholder" data-videoid="9uI2m1W0Uxc"></div>
+            <div class="card__body">
+                <a href="https://youtu.be/9uI2m1W0Uxc" class="card__title" target="_blank">Медовик</a>
+                <p class="card__desc">
+                    Класичний рецепт медовика...
+                    <br><br>
+                    Температура: 180
+                    <br>
+                    Час: 5-7 хв
+                    <br><br>
+                    Інградієнти для тіста:
+                    <br>
+                    вершкове масло - 90 г
+                    <br>
+                    яйця - 3 шт.
+                    <br>
+                    цукор - 50 г
+                    <br>
+                    мед - 170 г
+                    <br>
+                    сода - 1 ч.л.
+                    <br>
+                    борошно
+                    <br>
+                    дрібка солі
+                    <br><br>
+                    Інградієнти для крему:
+                    <br>
+                    сметана - 900 г 20-25 % жирності
+                    <br>
+                    цукрова пудра - 100 г
+                    <br>
+                    мед - 60 г
+                </p>
+            </div>
+        </div>
+
+        <div class="card" data-recipetype="cookie" data-tags="печиво, шоколадне, мармурове, вода, олія, сіль, цукор, ванілін, какао, борошно, розпушувач, цукрова пудра">
+            <div class="card__vid-placeholder" data-videoid="ksw7pBxKsWU"></div>
+            <div class="card__body">
+                <a href="https://youtu.be/ksw7pBxKsWU" class="card__title" target="_blank">Шоколадне мармурове печиво</a>
+                <p class="card__desc">
+                    Чудовий рецепт шоколадного мармурового печива, яке точно сподобається всім!
+                    <br><br>
+                    Температура: 180
+                    <br>
+                    Час: 25 хв
+                    <br><br>
+                    Інградієнти:
+                    <br>
+                    вода - 100 мл
+                    <br>
+                    олія - 60 мл
+                    <br>
+                    сіль - 1/4 ч.л.
+                    <br>
+                    цукор - 100 г
+                    <br>
+                    ванілін
+                    <br>
+                    какао - 60 г
+                    <br>
+                    борошно - 150 г
+                    <br>
+                    розпушувач - 10 г
+                    <br>
+                    цукрова пудра
+                </p>
+            </div>
+        </div>
+
+        <div class="card" data-recipetype="cookie" data-tags="печиво, м'яке, яйце, сіль, цукор, молоко, масло, олія, борошно, розпушувач, ванілін, какао">
+            <div class="card__vid-placeholder" data-videoid="yCBerxK4U68"></div>
+            <div class="card__body">
+                <a href="https://youtu.be/yCBerxK4U68" class="card__title" target="_blank">Смачне та м'яке печиво</a>
+                <p class="card__desc">
+                    Приготуйте найсмачніше та найм'якше печиво за цим рецептом. Ідеально до чаю!
+                    <br><br>
+                    Температура: 160
+                    <br>
+                    Час: 20 хв
+                    <br><br>
+                    Інградієнти:
+                    <br>
+                    яйце - 1 шт
+                    <br>
+                    сіль - 1/4 ч.л.
+                    <br>
+                    цукор - 90 г
+                    <br>
+                    молоко - 50 мл
+                    <br>
+                    вершкове масло - 50 г
+                    <br>
+                    олія без запаху - 30 мл
+                    <br>
+                    борошно - 230 г
+                    <br>
+                    розпушувач - 6 г
+                    <br>
+                    ванілін
+                    <br>
+                    <li>столова ложка борошна</li>
+                    <li>просіяне какао - 10 г</li>
+                </p>
+            </div>
+        </div>
+
+        <div class="card" data-recipetype="cake" data-tags="торт, орео, день народження, святковий, яйця, цукор, сіль, какао, олія, кип'яток, мука, крихмаль, розпушувач">
+            <div class="card__vid-placeholder" data-videoid="WLyS8U74pUI"></div>
+            <div class="card__body">
+                <a href="https://youtu.be/WLyS8U74pUI" class="card__title" target="_blank">Торт "Орео" на день народження</a>
+                <p class="card__desc">
+                    Святковий торт "Орео" – ідеальний вибір для дня народження!
+                    <br><br>
+                    Інградієнти:
+                    <br>
+                    яйця - 4 шт.
+                    <br>
+                    цукор - 140 г
+                    <br>
+                    сіль - 1 щіпотка
+                    <br>
+                    какао - 40 г
+                    <br>
+                    рослинна олія - 100 мл
+                    <br>
+                    кип'яток - 80 мл
+                    <br>
+                    мука - 110 г
+                    <br>
+                    крихмаль - 20 г
+                    <br>
+                    розпушувач - 2 ч.л.
+                    <br><br>
+                    <i>розраховано на форму 18 см</i>
+                </p>
+            </div>
+        </div>
+
+        <div class="card" data-recipetype="cookie" data-tags="печиво, швидкий, 8 хвилин, яйце, цукор, олія, розпушувач, борошно">
+            <div class="card__vid-placeholder" data-videoid="uT5tHH34-_k"></div>
+            <div class="card__body">
+                <a href="https://youtu.be/uT5tHH34-_k" class="card__title" target="_blank">Печиво за 8 хвилин</a>
+                <p class="card__desc">
+                    Швидкий рецепт печива, яке готове всього за 8 хвилин в духовці!
+                    <br><br>
+                    Температура: 200
+                    <br>
+                    Час: 8 хв
+                    <br><br>
+                    Інградієнти:
+                    <br>
+                    яйце
+                    <br>
+                    цукор - 100 г
+                    <br>
+                    рослинна олія - 120 мл
+                    <br>
+                    розпушувач - 0.5 ч.л.
+                    <br>
+                    борошно - 200 г (якщо тісто не збирається в комок, а липне до рук, тоді додайте ще 50-100 г борошна)
+                </p>
+            </div>
+        </div>
+
+        <div class="card" data-recipetype="pudding" data-tags="запіканка, суфле, ніжна, повітряна, сир, яйця, сметана, цукор, ванілін, сіль">
+            <div class="card__vid-placeholder" data-videoid="XtCVdLuhgDA"></div>
+            <div class="card__body">
+                <a href="https://youtu.be/XtCVdLuhgDA" class="card__title" target="_blank">Запіканка "Суфле"</a>
+                <p class="card__desc">
+                    Ніжна та повітряна запіканка "Суфле" – легкий та смачний десерт.
+                    <br><br>
+                    Температура: 170-180
+                    <br>
+                    Час: 30 хв
+                    <br><br>
+                    Інградієнти:
+                    <br>
+                    форма - d = 18cм
+                    <br><br>
+                    сир - 450-600 г
+                    <br>
+                    яйця - 4 шт.
+                    <br>
+                    сметана - 1 с.л.
+                    <br>
+                    цукор - 4 с.л.
+                    <br>
+                    ванілін та сіль
+                </p>
+            </div>
+        </div>
+
+        <div class="card" data-recipetype="cookie" data-tags="печиво, трюфель, борошно, маргарин, масло, цукор, ванільний цукор, сіль, жовтки, вишня">
+            <div class="card__vid-placeholder" data-videoid="IA8UPDGUQRI"></div>
+            <div class="card__body">
+                <a href="https://youtu.be/IA8UPDGUQRI" class="card__title" target="_blank">Печиво "Трюфель"</a>
+                <p class="card__desc">
+                    Температура: 200
+                    <br>
+                    Час: 15-18 хв
+                    <br><br>
+                    Інградієнти:
+                    <br>
+                    борошно 2.5 - 3 склянки
+                    <br>
+                    маргарин (або вершкове масло) - 250 г
+                    <br>
+                    цукор - 0.5 скл.
+                    <br>
+                    ванільний цукор - 1 пак.
+                    <br>
+                    дрібка солі
+                    <br>
+                    жовтки - 3 шт.
+                    <br>
+                    вишня консервована або заморожена для начинки - близько 0.5 скл.
+                </p>
+            </div>
+        </div>
+
+        <div class="card" data-recipetype="cookie" data-tags="печиво, медове, ароматне, яйця, цукор, мед, масло, борошно, розпушувач">
+            <div class="card__vid-placeholder" data-videoid="pSx_JL1BVs4"></div>
+            <div class="card__body">
+                <a href="https://youtu.be/pSx_JL1BVs4" class="card__title" target="_blank">Ароматне медове печиво</a>
+                <p class="card__desc">
+                    Приготуйте ароматне медове печиво за нашим перевіреним рецептом.
+                    <br><br>
+                    Температура: 180
+                    <br>
+                    Час: 15 хв
+                    <br><br>
+                    Інградієнти:
+                    <br>
+                    яйця - 2 шт.
+                    <br>
+                    цукор - 150 г
+                    <br>
+                    мед - 4 с.л.
+                    <br>
+                    вершкове масло - 150 г
+                    <br>
+                    борошно - 400 г
+                    <br>
+                    розпушувач - 1 ч.л.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagination-controls">
+        <button id="prev-page" class="pagination-btn">Назад</button>
+        <span id="page-info"></span>
+        <button id="next-page" class="pagination-btn">Вперед</button>
+    </div>
+
+    <script>
+    let currentPage = 1;
+    let filteredCards = [];
+    const recipesPerPage = 5;
+    let countdownIntervals = {}; // Object to store intervals for each card
+    // Load cheat codes from localStorage or initialize empty
+    let cheatCodesUsed = JSON.parse(localStorage.getItem('cheatCodesUsed')) || {};
+
+    // Функція для збереження активних чит-кодів у localStorage
+    function saveCheatCodes() {
+        localStorage.setItem('cheatCodesUsed', JSON.stringify(cheatCodesUsed));
+    }
+
+    // Функція для розрахунку відстані Левенштейна (для пошуку)
+    const levenshtein = (a, b) => {
+        if (a.length === 0) return b.length;
+        if (b.length === 0) return a.length;
+        const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+        for (let i = 0; i <= a.length; i += 1) { matrix[0][i] = i; }
+        for (let j = 1; j <= b.length; j += 1) { matrix[j][0] = j; }
+        for (let j = 1; j <= b.length; j += 1) {
+            for (let i = 1; i <= a.length; i += 1) {
+                const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
+                matrix[j][i] = Math.min(
+                    matrix[j][i - 1] + 1,
+                    matrix[j - 1][i] + 1,
+                    matrix[j - 1][i - 1] + indicator
+                );
+            }
+        }
+        return matrix[b.length][a.length];
+    };
+
+    // Функція для завантаження відео для конкретної картки
+    function loadVideoForCard(card) {
+        const placeholder = card.querySelector('.card__vid-placeholder');
+        if (placeholder) {
+            const videoId = placeholder.dataset.videoid;
+            if (videoId) {
+                const iframe = document.createElement('iframe');
+                iframe.setAttribute('allowfullscreen', '');
+                iframe.setAttribute('frameborder', '0');
+                iframe.setAttribute('src', `https://youtube.com/embed/${videoId}?rel=0`);
+                iframe.classList.add('card__vid');
+                // Замінюємо плейсхолдер на iframe
+                placeholder.parentNode.replaceChild(iframe, placeholder);
+            }
+        }
+    }
+
+
+    // Функція для відображення карток на поточній сторінці
+    function displayPage(page) {
+        console.log("displayPage called for page:", page);
+        const recipeCards = document.querySelectorAll('.card');
+        console.log("Total recipe cards found in DOM (inside displayPage):", recipeCards.length);
+        recipeCards.forEach(card => card.style.display = 'none');
+
+        const startIndex = (page - 1) * recipesPerPage;
+        const endIndex = startIndex + recipesPerPage;
+        const pageCards = filteredCards.slice(startIndex, endIndex);
+        console.log("Cards to display on current page:", pageCards.length);
+
+        pageCards.forEach((card) => {
+            card.style.display = 'block';
+            // Завантажуємо відео для кожної картки, що відображається
+            loadVideoForCard(card);
+        });
+
+        updatePaginationControls();
+    }
+
+    // Функція для оновлення елементів керування пагінацією
+    function updatePaginationControls() {
+        console.log("updatePaginationControls called. filteredCards.length:", filteredCards.length);
+        const totalPages = Math.ceil(filteredCards.length / recipesPerPage);
+        const pageInfo = document.getElementById('page-info');
+        const prevButton = document.getElementById('prev-page');
+        const nextButton = document.getElementById('next-page');
+        const searchResultsCount = document.getElementById('searchResultsCount');
+
+        pageInfo.textContent = `Сторінка ${currentPage} з ${totalPages > 0 ? totalPages : 1}`;
+        prevButton.disabled = currentPage === 1;
+        nextButton.disabled = currentPage === totalPages || totalPages === 0;
+
+        searchResultsCount.textContent = `Знайдено рецептів: ${filteredCards.length}`;
+        console.log("Search results count set to:", searchResultsCount.textContent);
+    }
+
+    // Функція для нормалізації тексту (для пошуку)
+    function normalizeText(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^\u0400-\u04FFa-z0-9\s]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    // Функція для форматування різниці в часі з роками та місяцями
+    function formatCountdown(ms) {
+        const totalSeconds = Math.floor(ms / 1000);
+        const totalMinutes = Math.floor(totalSeconds / 60);
+        const totalHours = Math.floor(totalMinutes / 60);
+        const totalDays = Math.floor(totalHours / 24);
+
+        const years = Math.floor(totalDays / 365);
+        const remainingDaysAfterYears = totalDays % 365;
+        const months = Math.floor(remainingDaysAfterYears / 30); // Approximation
+        const days = remainingDaysAfterYears % 30;
+        const hours = totalHours % 24;
+        const minutes = totalMinutes % 60;
+        const seconds = totalSeconds % 60;
+
+        let parts = [];
+        if (years > 0) parts.push(`<span class="value">${years}</span><span class="label">років</span>`);
+        if (months > 0 || years > 0) parts.push(`<span class="value">${months}</span><span class="label">міс</span>`);
+        if (days > 0 || months > 0 || years > 0) parts.push(`<span class="value">${days}</span><span class="label">днів</span>`);
+        if (hours > 0 || days > 0 || months > 0 || years > 0) parts.push(`<span class="value">${hours}</span><span class="label">год</span>`);
+        if (minutes > 0 || hours > 0 || days > 0 || months > 0 || years > 0) parts.push(`<span class="value">${minutes}</span><span class="label">хв</span>`);
+        parts.push(`<span class="value">${seconds}</span><span class="label">с</span>`);
+
+        // Filter out parts that are 0 if higher units are also 0
+        let effectiveParts = [];
+        let foundNonZero = false;
+        for (let i = 0; i < parts.length; i++) {
+            const valueMatch = parts[i].match(/<span class="value">(\d+)<\/span>/);
+            if (valueMatch && parseInt(valueMatch[1]) > 0) {
+                foundNonZero = true;
+            }
+            if (foundNonZero || i >= parts.length - 2) { // Always show minutes and seconds
+                effectiveParts.push(parts[i]);
+            }
+        }
+
+        return effectiveParts.join('');
+    }
+
+
+    // Функція для фільтрації та сортування рецептів
+    function filterAndSortRecipes() {
+        console.log("filterAndSortRecipes called.");
+        const searchInput = document.getElementById('recipeSearch');
+        const sortSelect = document.getElementById('recipeSort');
+        const recipeCards = document.querySelectorAll('.card');
+        console.log("Recipe cards found by querySelectorAll (inside filterAndSortRecipes):", recipeCards.length);
+
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const selectedType = sortSelect.value;
+
+        const normalizedSearchTerm = normalizeText(searchTerm);
+
+        if (normalizedSearchTerm === '') {
+            // If search term is empty, consider all cards that match the selected type
+            filteredCards = Array.from(recipeCards).filter(card => {
+                const recipeType = card.dataset.recipetype;
+                return selectedType === 'all' || recipeType === selectedType;
+            });
+            console.log("Filtered cards (empty search term):", filteredCards.length);
+            currentPage = 1;
+            displayPage(currentPage);
+            return;
+        }
+
+        const queryWords = normalizedSearchTerm.split(' ').filter(w => w.length > 0);
+
+        filteredCards = Array.from(recipeCards).filter(card => {
+            const recipeType = card.dataset.recipetype;
+            const matchesType = selectedType === 'all' || recipeType === selectedType;
+            if (!matchesType) return false;
+
+            const title = card.querySelector('.card__title').textContent;
+            const tags = card.dataset.tags ? card.dataset.tags : '';
+            const description = card.querySelector('.card__desc').textContent;
+
+            const normalizedCardText = normalizeText(`${title} ${tags} ${description}`);
+            const cardWords = normalizedCardText.split(' ').filter(w => w.length > 0);
+
+            const blocklistedQueriesRaw = card.dataset.blocklistedqueries;
+            if (blocklistedQueriesRaw) {
+                const blocklistedWords = blocklistedQueriesRaw.split(',').map(w => normalizeText(w));
+
+                const isBlocklisted = queryWords.some(qWord => blocklistedWords.includes(qWord));
+                if (isBlocklisted) {
+                    return false;
+                }
+            }
+
+            const hasMatch = queryWords.some(queryWord => {
+                return cardWords.some(cardWord => {
+                    if (queryWord === cardWord) {
+                        return true;
+                    }
+                    if (cardWord.includes(queryWord)) {
+                        return true;
+                    }
+
+                    const distance = levenshtein(queryWord, cardWord);
+                    let threshold;
+                    if (queryWord.length <= 4) {
+                        threshold = 0;
+                    } else if (queryWord.length <= 7) {
+                        threshold = 3;
+                    } else {
+                        threshold = 4;
+                    }
+
+                    if (distance <= threshold) {
+                        return true;
+                    }
+                    return false;
+                });
+            });
+
+            return hasMatch;
+        });
+
+        console.log("Filtered cards (with search term):", filteredCards.length);
+        currentPage = 1;
+        displayPage(currentPage);
+    }
+
+    // Функція для обробки карток на основі data-date та чит-кодів
+    function processRecipeCards() {
+        console.log("processRecipeCards called.");
+        const now = new Date();
+        document.querySelectorAll('.card').forEach((card, index) => {
+            const dateAttribute = card.dataset.date;
+            const cheatCodeAttribute = card.dataset.cheatcode;
+            const cardId = `card-${index}`; // Unique ID for each card to manage intervals
+
+            // Clear any existing interval for this card
+            if (countdownIntervals[cardId]) {
+                clearInterval(countdownIntervals[cardId]);
+                delete countdownIntervals[cardId];
+            }
+
+            // Check if cheat code has been successfully used for this card
+            const isCheatCodeActive = cheatCodesUsed[cardId] === true;
+
+            if (dateAttribute) {
+                // Парсинг дати у форматі "dd.MM.yyyy"
+                const [day, month, year] = dateAttribute.split('.').map(Number);
+                // Місяці в JavaScript Date об'єкті є 0-індексованими (0-11)
+                const releaseDate = new Date(year, month - 1, day);
+                const timeDiff = releaseDate.getTime() - now.getTime(); // Calculate timeDiff here
+
+                const cardVidContainer = card.querySelector('.card__vid-placeholder, .card__vid');
+                const cardTitle = card.querySelector('.card__title');
+                let cardDesc = card.querySelector('.card__desc');
+
+                // If cardDesc doesn't exist, create it
+                if (!cardDesc) {
+                    cardDesc = document.createElement('p');
+                    cardDesc.classList.add('card__desc');
+                    card.querySelector('.card__body').appendChild(cardDesc);
+                }
+
+                // Store original title and href if they exist
+                if (cardTitle && !cardTitle.dataset.originalTitle) {
+                    cardTitle.dataset.originalTitle = cardTitle.textContent;
+                    cardTitle.dataset.originalHref = cardTitle.href;
+                }
+                // Store original description if it exists
+                if (cardDesc && !cardDesc.dataset.originalDescription) {
+                    cardDesc.dataset.originalDescription = cardDesc.innerHTML;
+                }
+
+                // Function to update the countdown
+                const updateCountdown = () => {
+                    const currentTime = new Date();
+                    const currentDiff = releaseDate.getTime() - currentTime.getTime(); // Use currentDiff inside interval
+
+                    if (currentDiff > 0 && !isCheatCodeActive) {
+                        // Recipe is not yet available and cheat code is not active
+                        if (cardVidContainer) cardVidContainer.style.display = 'none'; // Hide video
+                        if (cardTitle) {
+                            cardTitle.textContent = 'Секрет'; // Change title to "Секрет"
+                            cardTitle.style.pointerEvents = 'none'; // Disable clicks
+                            cardTitle.style.cursor = 'default';
+                            cardTitle.removeAttribute('href'); // Remove link
+                        }
+                        cardDesc.innerHTML = `Цей рецепт недоступний!<br>Він стане доступним: ${dateAttribute}<div class="card__timer">${formatCountdown(currentDiff)}</div>`;
+                    } else {
+                        // Recipe is available or cheat code is active
+                        if (cardVidContainer) cardVidContainer.style.display = 'block'; // Show video
+                        if (cardTitle) {
+                            const originalTitle = cardTitle.dataset.originalTitle || "Торт 'Жіночий каприз'"; // Fallback
+                            cardTitle.textContent = originalTitle;
+                            cardTitle.style.pointerEvents = 'auto';
+                            cardTitle.style.cursor = 'pointer';
+                            cardTitle.href = cardTitle.dataset.originalHref || "https://youtu.be/8WZ-W1o2gLQ"; // Fallback
+                        }
+                        // Restore original description or remove timer
+                        const originalDescription = cardDesc.dataset.originalDescription || ''; // Get original description
+                        cardDesc.innerHTML = originalDescription;
+
+                        // Clear the interval as the recipe is now available or bypassed
+                        clearInterval(countdownIntervals[cardId]);
+                        delete countdownIntervals[cardId];
+                    }
+                };
+
+
+                // Initial call to set the state
+                updateCountdown();
+
+                // Set interval to update countdown every second if not bypassed
+                if (timeDiff > 0 && !isCheatCodeActive) {
+                    countdownIntervals[cardId] = setInterval(updateCountdown, 1000);
+                }
+            } else {
+                // If no data-date, ensure card is visible and timer is cleared
+                const cardVidContainer = card.querySelector('.card__vid-placeholder, .card__vid');
+                const cardTitle = card.querySelector('.card__title');
+                const cardDesc = card.querySelector('.card__desc');
+
+                if (cardVidContainer) cardVidContainer.style.display = 'block';
+                if (cardTitle) {
+                    const originalTitle = cardTitle.dataset.originalTitle || cardTitle.textContent;
+                    cardTitle.textContent = originalTitle;
+                    cardTitle.style.pointerEvents = 'auto';
+                    cardTitle.style.cursor = 'pointer';
+                    cardTitle.href = cardTitle.dataset.originalHref || cardTitle.href;
+                }
+                if (cardDesc) {
+                    const originalDescription = cardDesc.dataset.originalDescription || cardDesc.innerHTML;
+                    cardDesc.innerHTML = originalDescription;
+                }
+            }
+        });
+    }
+
+    // Функція для відображення активних чит-кодів
+    function renderActiveCheatCodes() {
+        const activeCheatCodesList = document.getElementById('activeCheatCodesList');
+        activeCheatCodesList.innerHTML = ''; // Очистити попередній список
+
+        const allCards = document.querySelectorAll('.card');
+        let hasActiveCodes = false;
+
+        allCards.forEach((card, index) => {
+            const cardId = `card-${index}`;
+            const cheatCodeAttribute = card.dataset.cheatcode;
+            const dateAttribute = card.dataset.date;
+
+            // Показувати тільки якщо чит-код існує для картки І він активний І дата ще не настала природним шляхом
+            if (cheatCodeAttribute && cheatCodesUsed[cardId] === true) {
+                const [day, month, year] = dateAttribute.split('.').map(Number);
+                const releaseDate = new Date(year, month - 1, day);
+                const now = new Date();
+
+                if (now.getTime() < releaseDate.getTime()) { // Показувати тільки якщо все ще обійдено
+                    hasActiveCodes = true;
+                    const cardTitle = card.querySelector('.card__title').dataset.originalTitle || card.querySelector('.card__title').textContent;
+                    const itemDiv = document.createElement('div');
+                    itemDiv.classList.add('active-code-item');
+                    itemDiv.innerHTML = `
+                        <span>${cardTitle} (${cheatCodeAttribute})</span>
+                        <button class="remove-cheat-code-btn" data-card-id="${cardId}">Вимкнути</button>
+                    `;
+                    activeCheatCodesList.appendChild(itemDiv);
+                }
+            }
+        });
+
+        if (!hasActiveCodes) {
+            activeCheatCodesList.innerHTML = '<p style="color: #aaa;">Немає активних чит-кодів.</p>';
+        }
+
+        // Додати обробники подій для кнопок "Вимкнути"
+        activeCheatCodesList.querySelectorAll('.remove-cheat-code-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const cardIdToRemove = event.target.dataset.cardId;
+                delete cheatCodesUsed[cardIdToRemove]; // Видалити активний стан
+                saveCheatCodes(); // Зберегти оновлений стан
+                processRecipeCards(); // Повторно обробити картки для оновлення видимості
+                filterAndSortRecipes(); // Повторно відфільтрувати та відсортувати для оновлення відображення
+                renderActiveCheatCodes(); // Повторно відрендерити список у модальному вікні
+            });
+        });
+    }
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+        console.log("DOMContentLoaded event fired.");
+        const searchInput = document.getElementById('recipeSearch');
+        const sortSelect = document.getElementById('recipeSort');
+        const prevButton = document.getElementById('prev-page');
+        const nextButton = document.getElementById('next-page');
+        const logo = document.getElementById('logo');
+        const cheatCodeModal = document.getElementById('cheatCodeModal');
+        const cheatCodeInput = document.getElementById('cheatCodeInput');
+        const submitCheatCodeBtn = document.getElementById('submitCheatCode');
+        const cancelCheatCodeBtn = document.getElementById('cancelCheatCode');
+        const modalMessage = document.getElementById('modalMessage');
+
+        const activeCheatCodesModal = document.getElementById('activeCheatCodesModal');
+        const addCheatCodeBtn = document.getElementById('addCheatCodeBtn');
+        const closeActiveCheatCodesModal = document.getElementById('closeActiveCheatCodesModal');
+
+        let lastClickTime = 0;
+        const doubleClickThreshold = 300; // milliseconds
+
+        logo.addEventListener('click', (event) => {
+            const currentTime = new Date().getTime();
+            if (currentTime - lastClickTime < doubleClickThreshold) {
+                // Double click detected, open active cheat codes modal
+                renderActiveCheatCodes(); // Render the list before showing
+                activeCheatCodesModal.style.display = 'flex';
+            }
+            lastClickTime = currentTime;
+        });
+
+        submitCheatCodeBtn.addEventListener('click', () => {
+            const enteredCode = cheatCodeInput.value.trim().toLowerCase(); // Convert to lowercase
+            let foundMatch = false;
+
+            document.querySelectorAll('.card').forEach((card, index) => {
+                const dateAttribute = card.dataset.date;
+                const cheatCodeAttribute = card.dataset.cheatcode ? card.dataset.cheatcode.toLowerCase() : null; // Convert to lowercase
+                const cardId = `card-${index}`;
+
+                if (dateAttribute && cheatCodeAttribute && enteredCode === cheatCodeAttribute) {
+                    const [day, month, year] = dateAttribute.split('.').map(Number);
+                    const releaseDate = new Date(year, month - 1, day);
+                    const now = new Date();
+
+                    if (now.getTime() < releaseDate.getTime()) {
+                        // If date has not passed, and cheat code matches
+                        cheatCodesUsed[cardId] = true; // Mark this card as bypassed
+                        saveCheatCodes(); // Save updated state
+                        foundMatch = true;
+                    }
+                }
+            });
+
+            if (foundMatch) {
+                modalMessage.style.color = 'green';
+                modalMessage.textContent = 'Чит-код прийнято! Рецепт розблоковано.';
+                setTimeout(() => {
+                    cheatCodeModal.style.display = 'none';
+                    processRecipeCards(); // Re-process cards to update visibility
+                    filterAndSortRecipes(); // Re-filter and sort to update display
+                }, 1500);
+            } else {
+                modalMessage.style.color = 'red';
+                modalMessage.textContent = 'Невірний чит-код або рецепт вже доступний.';
+            }
+        });
+
+        cancelCheatCodeBtn.addEventListener('click', () => {
+            cheatCodeModal.style.display = 'none';
+        });
+
+        // Event listeners for the new modal buttons
+        addCheatCodeBtn.addEventListener('click', () => {
+            activeCheatCodesModal.style.display = 'none'; // Close active codes modal
+            cheatCodeModal.style.display = 'flex'; // Open cheat code input modal
+            cheatCodeInput.value = '';
+            modalMessage.textContent = '';
+        });
+
+        closeActiveCheatCodesModal.addEventListener('click', () => {
+            activeCheatCodesModal.style.display = 'none';
+        });
+
+
+        // Обробляємо картки на основі дати перед початковою фільтрацією
+        processRecipeCards();
+        filterAndSortRecipes(); // Викликаємо фільтрацію після обробки дат
+
+        searchInput.addEventListener('keyup', filterAndSortRecipes);
+        sortSelect.addEventListener('change', filterAndSortRecipes);
+
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                displayPage(currentPage);
+            }
+        });
+
+        nextButton.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredCards.length / recipesPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayPage(currentPage);
+            }
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const isLight = urlParams.get('light') === 'true';
+
+        if (isLight) {
+            document.body.style.background = 'none';
+            document.body.style.color = 'black';
+            const footer = document.getElementById("footerID");
+            if (footer) {
+                footer.style.background = '#aaa';
+            }
+
+            const allLinks = document.querySelectorAll('a');
+            allLinks.forEach(link => {
+                link.style.color = 'black';
+                const linkUrl = new URL(link.href);
+                if (!linkUrl.searchParams.has('light')) {
+                    linkUrl.searchParams.set('light', 'true');
+                    link.href = linkUrl.toString();
+                }
+            });
+            const searchInputStyle = document.getElementById('recipeSearch');
+            const sortSelectStyle = document.getElementById('recipeSort');
+            if (searchInputStyle) {
+                searchInputStyle.style.backgroundColor = '#f0f0f0';
+                searchInputStyle.style.color = '#333';
+            }
+            if (sortSelectStyle) {
+                sortSelectStyle.style.backgroundColor = '#f0f0f0';
+                sortSelectStyle.style.color = '#333';
+            }
+        }
+    });
+
+    // Clear all intervals when the page is unloaded to prevent memory leaks
+    window.addEventListener('beforeunload', () => {
+        for (const cardId in countdownIntervals) {
+            clearInterval(countdownIntervals[cardId]);
+        }
+    });
+    </script>
+    <br><br><br><br>
+    <section class="footer" id="footerID">
+        <div class="social">
+            <a href="https://t.me/CraftLLC" target="_blank"><i class="fab fa-telegram"></i></a>
+            <a href="https://m.youtube.com/@CraftLLCOF" target="_blank"><i class="fab fa-youtube"></i></a>
+            <a href="https://github.com/CraftLLC" target="_blank"><i class="fab fa-github"></i></a>
+            <a href="https://x.com/NotCraftLLC" target="_blank"><i class="fab fa-x-twitter"></i></a>
+        </div>
+
+        <p class="copyright">© Андрій Рудик 2024-2025</p>
+    </section>
+    <script>
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mainPageView') === 'true') {
+        const header = document.querySelector('header');
+        const footer = document.getElementById('footerID');
+        const logo = document.getElementById('logo')
+        if (header) header.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        if (logo) logo.style.display = 'none';
+    }
+    </script>
+</body>
+</html>

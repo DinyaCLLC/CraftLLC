@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="На сайті CraftLLC, ви знайдете корисні рецепти. І всі перевірені!">
+    <meta name="keywords" content="CraftLLC, craftllc.pages.dev, Site, Сайт, Рецепти, Бабуся.">
+    <meta name="robots" content="index, follow">
+    <meta name="google-site-verification" content="Vb3DSk3tL1t77Z6-wuc0sSOz4ivMr8ioTF8WVNe9Trk" />
+    <title>Головна — CraftLLC</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #141414;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding-top: 20px;
+        }
+        button {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            width: 90%;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: black; /* Додано для видимості тексту на кнопці */
+        }
+        h1, h2 {
+            margin: 20px 0;
+        }
+        p {
+            margin: 10px 0;
+        }
+        a {
+            text-decoration: none;
+            color: white;
+        }
+        iframe {
+            width: 100%;
+            border: none;
+            min-height: 100px;
+            display: block;
+        }
+        /* Лоадер */
+        #loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #141414;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loader {
+            width: 50px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background:
+                radial-gradient(farthest-side,#ffa516 94%,#0000) top/8px 8px no-repeat,
+                conic-gradient(#0000 30%,#ffa516);
+            -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
+            animation: l13 1s infinite linear;
+        }
+        @keyframes l13 {
+            100% { transform: rotate(1turn) }
+        }
+        .footer {
+            margin: 0;
+            padding: 40px 0;
+            background-color: #161616;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .footer .social {
+            text-align: center;
+            padding-bottom: 25px;
+            font-size: 24px;
+            text-decoration: none;
+        }
+        .footer .social a {
+            border: 1px solid #ccc;
+            border-radius: 30%;
+            width: 40px;
+            height: 40px;
+            line-height: 38px;
+            display: inline-block;
+            text-align: center;
+            margin: 0 6px;
+            opacity: 0.75;
+        }
+        .footer .social a:hover {
+            opacity: 1.0;
+        }
+        .footer .social .fa-telegram {
+            color: #29a0dc;
+        }
+        .footer .social .fa-youtube {
+            color: #ff0000;
+        }
+        .footer .copyright {
+            margin-top: 5px;
+            text-align: center;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        /* Стилі для авторизації */
+        .auth-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .auth-button {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            color: #212121;
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            text-decoration: none;
+            display: inline-block;
+            width: auto; /* Перевизначаємо ширину кнопки */
+            height: auto; /* Перевизначаємо висоту кнопки */
+        }
+        .register-button {
+            background: none;
+            border: 1px solid #212121;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            text-decoration: none;
+            display: inline-block;
+            width: auto;
+            height: auto;
+        }
+        .profile-info {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: white;
+        }
+        .profile-info .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background-color: #ffb700; /* Placeholder for avatar */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #212121;
+            overflow: hidden; /* Забезпечуємо, що зображення аватарки не виходить за межі круга */
+        }
+        .profile-info .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Зберігаємо пропорції та заповнюємо круг */
+        }
+        .profile-dropdown {
+            position: absolute;
+            top: 50px; /* Adjust as needed */
+            right: 0;
+            background-color: #212121;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            display: none; /* Hidden by default */
+            z-index: 1000;
+            text-align: left;
+        }
+        .profile-dropdown p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .profile-dropdown button {
+            width: 100%;
+            margin-top: 10px;
+            background: linear-gradient(to right, #FF4500, #FF6347); /* Logout button color */
+            color: white;
+        }
+        .profile-dropdown button.account-btn {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            color: #212121;
+        }
+
+        /* Styles for the cheat code modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 10000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #888;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-content input[type="text"] {
+            width: calc(100% - 20px); /* Adjust for padding */
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ffa516;
+            border-radius: 8px;
+            background-color: #333;
+            color: white;
+            font-size: 1em;
+        }
+
+        .modal-content button {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            width: auto; /* Allow button to size naturally */
+            margin: 0 5px; /* Spacing between buttons */
+        }
+
+        .modal-content button:hover {
+            opacity: 0.9;
+        }
+
+        .modal-message {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        /* Styles for the new active cheat codes modal */
+        .active-codes-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #222;
+        }
+        .active-code-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background-color: #333;
+            border-radius: 5px;
+            color: white;
+        }
+        .active-code-item:last-child {
+            margin-bottom: 0;
+        }
+        .active-code-item span {
+            flex-grow: 1;
+            text-align: left;
+            padding-left: 10px;
+        }
+        .active-code-item button {
+            width: auto;
+            padding: 5px 10px;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+    <header>
+        <!-- <div class="auth-container" id="authContainer"> -->
+        <!-- </div> -->
+        <a href="/"><button>Головна</button></a>
+        <br><br>
+        <a href="/contacts"><button>Контакти</button></a>
+        <br><br>
+        <a href="/recipes"><button>Рецепти</button></a>
+    </header>
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "86e4717144d44d26a30bb98452c1e06b"}'></script>
+    <script>
+        function adjustAllIframesHeight() {
+            const iframes = document.querySelectorAll("iframe");
+            iframes.forEach(iframe => {
+                try {
+                    if (iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.body) {
+                        const contentHeight = iframe.contentWindow.document.body.scrollHeight;
+                        if (contentHeight > 0) {
+                            iframe.style.height = contentHeight + "px";
+                        }
+                    }
+                } catch (e) {
+                    console.error("Не вдається отримати висоту вмісту через політику безпеки браузера або iframe ще не завантажився:", e);
+                }
+            });
+        }
+
+        window.addEventListener("load", () => {
+            const loaderWrapper = document.getElementById('loader-wrapper');
+            if (loaderWrapper) {
+                loaderWrapper.style.display = 'none';
+            }
+            adjustAllIframesHeight();
+            setInterval(adjustAllIframesHeight, 500);
+        });
+
+        function setSpecialDateAssets() {
+            const today = new Date();
+            const day = today.getDate();
+            const month = today.getMonth() + 1;
+
+            const favicon = document.querySelector('link[rel="icon"]');
+            const logo = document.getElementById('logo');
+
+            if (!favicon || !logo) return;
+
+            if (month === 1 && day === 1) {
+                favicon.href = '/favicon2.ico';
+                logo.src = '/logo2.png';
+            }
+            else if (month === 3 && day === 8) {
+                favicon.href = '/favicon.ico';
+                logo.src = '/logo3.png';
+            }
+            else if (month === 9 && day === 26) {
+                favicon.href = '/favicon_birthday.ico';
+                logo.src = '/logo_birthday.png';
+            }
+            else {
+                favicon.href = '/favicon.ico';
+                logo.src = '/logo.png';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", setSpecialDateAssets);
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isLight = urlParams.get('light') === 'true';
+            if (isLight) {
+                document.body.style.background = 'none';
+                document.body.style.color = 'black';
+                const footer = document.getElementById("footerID");
+                if (footer) {
+                    footer.style.background = "#ededed";
+                }
+
+                const allLinks = document.querySelectorAll('a');
+                allLinks.forEach(link => {
+                    link.style.color = 'black';
+                    const linkUrl = new URL(link.href);
+                    if (!linkUrl.searchParams.has('light')) {
+                        linkUrl.searchParams.set('light', 'true');
+                        link.href = linkUrl.toString();
+                    }
+                });
+                document.querySelectorAll("iframe").forEach(iframe => {
+                    const currentSrc = iframe.getAttribute("src");
+                    if (currentSrc) {
+                        try {
+                            const url = new URL(currentSrc, window.location.origin);
+                            url.searchParams.set("light", "true");
+                            iframe.setAttribute("src", url.toString());
+                        } catch (e) {
+                            console.error("Помилка зміни src:", e);
+                        }
+                    } else {
+                        console.error("Iframe не має src:", iframe);
+                    }
+                });
+                // Зміна кольору кнопок авторизації для світлої теми
+                const authButtons = document.querySelectorAll('.auth-button');
+                authButtons.forEach(button => {
+                    button.style.background = 'linear-gradient(to right, #B0B0B0, #D0D0D0)';
+                    button.style.color = '#333';
+                });
+                const registerButton = document.querySelector('.register-button');
+                if (registerButton) {
+                    registerButton.style.borderColor = '#A0A0A0';
+                    registerButton.style.color = '#333';
+                }
+                const profileInfo = document.querySelector('.profile-info');
+                if (profileInfo) {
+                    profileInfo.style.color = 'black';
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+    <noscript>
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #141414; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10001; text-align: center; padding: 20px;">
+            <h1>JavaScript вимкнено</h1>
+            <p>Цей сайт вимагає увімкненого JavaScript для коректної роботи.</p>
+            <p>Будь ласка, увімкніть JavaScript у налаштуваннях вашого браузера, щоб продовжити.</p>
+        </div>
+    </noscript>
+    
+    <div id="loader-wrapper">
+        <div class="loader"></div>
+    </div>
+    <img src="/logo.png" width="90%" id="logo" alt="Логотип CraftLLC">
+
+    <!-- Cheat Code Modal -->
+    <div id="cheatCodeModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Введіть чит-код</h2>
+            <input type="text" id="cheatCodeInput" placeholder="Ваш чит-код">
+            <button id="submitCheatCode">Підтвердити</button>
+            <button id="cancelCheatCode">Скасувати</button>
+            <p id="modalMessage" class="modal-message"></p>
+        </div>
+    </div>
+
+    <!-- Active Cheat Codes Modal -->
+    <div id="activeCheatCodesModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Активні чит-коди</h2>
+            <div id="activeCheatCodesList" class="active-codes-list">
+                <!-- Active cheat codes will be rendered here -->
+            </div>
+            <br>
+            <button id="addCheatCodeBtn">Додати чит-код</button>
+            <button id="closeActiveCheatCodesModal">Закрити</button>
+        </div>
+    </div>
+
+    <h1>Головна</h1>
+    <h1>QR-код</h1>
+    <img src="/qr.png" alt="QR-код на цей сайт." width="256" height="256">
+    <iframe id="recipesIframe" src="/recipes?mainPageView=true" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
+    <iframe src="/contacts?mainPageView=true" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
+
+    <section class="footer" id="footerID">
+        <div class="social">
+            <a href="https://t.me/CraftLLC" target="_blank"><i class="fab fa-telegram"></i></a>
+            <a href="https://m.youtube.com/@CraftLLCOF" target="_blank"><i class="fab fa-youtube"></i></a>
+            <a href="https://github.com/CraftLLC" target="_blank"><i class="fab fa-github"></i></a>
+            <a href="https://x.com/NotCraftLLC" target="_blank"><i class="fab fa-x-twitter"></i></a>
+        </div>
+
+        <p class="copyright">© Андрій Рудик 2024-2025</p>
+    </section>
+
+    <script>
+        // Load cheat codes from localStorage or initialize empty
+        let cheatCodesUsed = JSON.parse(localStorage.getItem('cheatCodesUsed')) || {};
+
+        // Функція для збереження активних чит-кодів у localStorage
+        function saveCheatCodes() {
+            localStorage.setItem('cheatCodesUsed', JSON.stringify(cheatCodesUsed));
+        }
+
+        // Функція для відображення активних чит-кодів у модальному вікні
+        async function renderActiveCheatCodes() {
+            const activeCheatCodesList = document.getElementById('activeCheatCodesList');
+            activeCheatCodesList.innerHTML = ''; // Очистити попередній список
+
+            const recipesIframe = document.getElementById('recipesIframe');
+            let hasActiveCodes = false;
+
+            // Перевіряємо, чи iframe завантажений і доступний
+            if (recipesIframe && recipesIframe.contentWindow && recipesIframe.contentWindow.document) {
+                try {
+                    const iframeDoc = recipesIframe.contentWindow.document;
+                    const allCardsInIframe = iframeDoc.querySelectorAll('.card');
+
+                    allCardsInIframe.forEach((card, index) => {
+                        const cardId = `card-${index}`; // Assuming cardId in iframe matches parent's logic
+                        const cheatCodeAttribute = card.dataset.cheatcode;
+                        const dateAttribute = card.dataset.date;
+
+                        // Показувати тільки якщо чит-код існує для картки І він активний І дата ще не настала природним шляхом
+                        if (cheatCodeAttribute && cheatCodesUsed[cardId] === true) {
+                            const [day, month, year] = dateAttribute.split('.').map(Number);
+                            const releaseDate = new Date(year, month - 1, day);
+                            const now = new Date();
+
+                            if (now.getTime() < releaseDate.getTime()) { // Показувати тільки якщо все ще обійдено
+                                hasActiveCodes = true;
+                                const cardTitleElement = card.querySelector('.card__title');
+                                const cardTitle = cardTitleElement ? (cardTitleElement.dataset.originalTitle || cardTitleElement.textContent) : 'Невідомий рецепт';
+
+                                const itemDiv = document.createElement('div');
+                                itemDiv.classList.add('active-code-item');
+                                itemDiv.innerHTML = `
+                                    <span>${cardTitle} (${cheatCodeAttribute})</span>
+                                    <button class="remove-cheat-code-btn" data-card-id="${cardId}">Вимкнути</button>
+                                `;
+                                activeCheatCodesList.appendChild(itemDiv);
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.error("Помилка доступу до iframe для рендерингу чит-кодів:", e);
+                    activeCheatCodesList.innerHTML = '<p style="color: #aaa;">Не вдалося завантажити активні чит-коди. Переконайтеся, що сторінка рецептів завантажена.</p>';
+                }
+            } else {
+                activeCheatCodesList.innerHTML = '<p style="color: #aaa;">Сторінка рецептів ще не завантажена або недоступна.</p>';
+            }
+
+
+            if (!hasActiveCodes && activeCheatCodesList.innerHTML === '') { // Only if no codes were added and no error message
+                activeCheatCodesList.innerHTML = '<p style="color: #aaa;">Немає активних чит-кодів.</p>';
+            }
+
+            // Додати обробники подій для кнопок "Вимкнути"
+            activeCheatCodesList.querySelectorAll('.remove-cheat-code-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const cardIdToRemove = event.target.dataset.cardId;
+                    delete cheatCodesUsed[cardIdToRemove]; // Видалити активний стан
+                    saveCheatCodes(); // Зберегти оновлений стан
+                    // Надсилаємо повідомлення iframe, щоб він оновився
+                    const recipesIframe = document.getElementById('recipesIframe');
+                    if (recipesIframe && recipesIframe.contentWindow) {
+                        recipesIframe.contentWindow.postMessage({ type: 'UPDATE_RECIPES_DISPLAY' }, window.location.origin);
+                    }
+                    renderActiveCheatCodes(); // Повторно відрендерити список у модальному вікні
+                });
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const logo = document.getElementById('logo');
+            const cheatCodeModal = document.getElementById('cheatCodeModal');
+            const cheatCodeInput = document.getElementById('cheatCodeInput');
+            const submitCheatCodeBtn = document.getElementById('submitCheatCode');
+            const cancelCheatCodeBtn = document.getElementById('cancelCheatCode');
+            const modalMessage = document.getElementById('modalMessage');
+
+            const activeCheatCodesModal = document.getElementById('activeCheatCodesModal');
+            const addCheatCodeBtn = document.getElementById('addCheatCodeBtn');
+            const closeActiveCheatCodesModal = document.getElementById('closeActiveCheatCodesModal');
+
+            let lastClickTime = 0;
+            const doubleClickThreshold = 300; // milliseconds
+
+            logo.addEventListener('click', (event) => {
+                const currentTime = new Date().getTime();
+                if (currentTime - lastClickTime < doubleClickThreshold) {
+                    // Double click detected, open active cheat codes modal
+                    renderActiveCheatCodes(); // Render the list before showing
+                    activeCheatCodesModal.style.display = 'flex';
+                }
+                lastClickTime = currentTime;
+            });
+
+            submitCheatCodeBtn.addEventListener('click', () => {
+                const enteredCode = cheatCodeInput.value.trim().toLowerCase(); // Convert to lowercase
+                let foundMatch = false;
+
+                const recipesIframe = document.getElementById('recipesIframe');
+                if (recipesIframe && recipesIframe.contentWindow && recipesIframe.contentWindow.document) {
+                    try {
+                        const iframeDoc = recipesIframe.contentWindow.document;
+                        iframeDoc.querySelectorAll('.card').forEach((card, index) => {
+                            const dateAttribute = card.dataset.date;
+                            const cheatCodeAttribute = card.dataset.cheatcode ? card.dataset.cheatcode.toLowerCase() : null; // Convert to lowercase
+                            const cardId = `card-${index}`;
+
+                            if (dateAttribute && cheatCodeAttribute && enteredCode === cheatCodeAttribute) {
+                                const [day, month, year] = dateAttribute.split('.').map(Number);
+                                const releaseDate = new Date(year, month - 1, day);
+                                const now = new Date();
+
+                                if (now.getTime() < releaseDate.getTime()) {
+                                    // If date has not passed, and cheat code matches
+                                    cheatCodesUsed[cardId] = true; // Mark this card as bypassed
+                                    saveCheatCodes(); // Save updated state
+                                    foundMatch = true;
+                                }
+                            }
+                        });
+                    } catch (e) {
+                        console.error("Помилка доступу до iframe при введенні чит-коду:", e);
+                        modalMessage.style.color = 'red';
+                        modalMessage.textContent = 'Помилка: не вдалося перевірити чит-код. Спробуйте ще раз.';
+                        return; // Exit function if iframe access fails
+                    }
+                } else {
+                    modalMessage.style.color = 'red';
+                    modalMessage.textContent = 'Сторінка рецептів ще не завантажена або недоступна.';
+                    return; // Exit if iframe is not ready
+                }
+
+
+                if (foundMatch) {
+                    modalMessage.style.color = 'green';
+                    modalMessage.textContent = 'Чит-код прийнято! Рецепт розблоковано.';
+                    setTimeout(() => {
+                        cheatCodeModal.style.display = 'none';
+                        // Надсилаємо повідомлення iframe, щоб він оновився
+                        if (recipesIframe && recipesIframe.contentWindow) {
+                            recipesIframe.contentWindow.postMessage({ type: 'UPDATE_RECIPES_DISPLAY' }, window.location.origin);
+                        }
+                    }, 1500);
+                } else {
+                    modalMessage.style.color = 'red';
+                    modalMessage.textContent = 'Невірний чит-код або рецепт вже доступний.';
+                }
+            });
+
+            cancelCheatCodeBtn.addEventListener('click', () => {
+                cheatCodeModal.style.display = 'none';
+            });
+
+            // Event listeners for the new modal buttons
+            addCheatCodeBtn.addEventListener('click', () => {
+                activeCheatCodesModal.style.display = 'none'; // Close active codes modal
+                cheatCodeModal.style.display = 'flex'; // Open cheat code input modal
+                cheatCodeInput.value = '';
+                modalMessage.textContent = '';
+            });
+
+            closeActiveCheatCodesModal.addEventListener('click', () => {
+                activeCheatCodesModal.style.display = 'none';
+            });
+
+            // Add an event listener for the iframe's load event
+            const recipesIframe = document.getElementById('recipesIframe');
+            if (recipesIframe) {
+                recipesIframe.onload = () => {
+                    console.log("Recipes iframe loaded.");
+                    // Надсилаємо початкове повідомлення iframe після завантаження
+                    if (recipesIframe.contentWindow) {
+                        recipesIframe.contentWindow.postMessage({ type: 'UPDATE_RECIPES_DISPLAY' }, window.location.origin);
+                    }
+                };
+            }
+        });
+
+        // Функція для перевірки сесії користувача
+        async function checkUserSession() {
+            const authContainer = document.getElementById('authContainer');
+            // authContainer.innerHTML = ''; // Очищаємо контейнер
+
+            try {
+                const response = await fetch('/api/user', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    if (userData && userData.username) {
+                        // Користувач авторизований
+                        const profileInfoDiv = document.createElement('div');
+                        profileInfoDiv.className = 'profile-info';
+                        profileInfoDiv.onclick = toggleProfileDropdown;
+
+                        const avatarDiv = document.createElement('div');
+                        avatarDiv.className = 'avatar';
+                        if (userData.avatar_url) {
+                            const avatarImg = document.createElement('img');
+                            avatarImg.src = userData.avatar_url;
+                            avatarImg.alt = 'User Avatar';
+                            avatarDiv.appendChild(avatarImg);
+                        } else {
+                            avatarDiv.textContent = userData.username.charAt(0).toUpperCase(); // Перша літера імені
+                        }
+                        profileInfoDiv.appendChild(avatarDiv);
+
+                        const usernameSpan = document.createElement('span');
+                        usernameSpan.textContent = userData.username;
+                        profileInfoDiv.appendChild(usernameSpan);
+
+                        // authContainer.appendChild(profileInfoDiv); // Re-add if authContainer is uncommented
+
+                        const profileDropdownDiv = document.createElement('div');
+                        profileDropdownDiv.className = 'profile-dropdown';
+                        profileDropdownDiv.id = 'profileDropdown';
+
+                        const nameP = document.createElement('p');
+                        nameP.textContent = `Ім'я користувача: ${userData.username}`;
+                        profileDropdownDiv.appendChild(nameP);
+
+                        if (userData.name) {
+                            const realNameP = document.createElement('p');
+                            realNameP.textContent = `Справжнє ім'я: ${userData.name}`;
+                            profileDropdownDiv.appendChild(realNameP);
+                        }
+
+                        const accountButton = document.createElement('button');
+                        accountButton.className = 'auth-button account-btn'; // Додаємо клас для стилів
+                        accountButton.textContent = 'Мій акаунт';
+                        accountButton.onclick = () => window.location.href = '/account';
+                        profileDropdownDiv.appendChild(accountButton);
+
+                        const logoutButton = document.createElement('button');
+                        logoutButton.textContent = 'Вийти';
+                        logoutButton.onclick = logoutUser;
+                        profileDropdownDiv.appendChild(logoutButton);
+
+                        // authContainer.appendChild(profileDropdownDiv); // Re-add if authContainer is uncommented
+
+                    } else {
+                        // Користувач не авторизований
+                        // renderAuthButtons(); // Re-add if renderAuthButtons is uncommented
+                    }
+                } else {
+                    // Сервер повернув помилку або користувач не авторизований
+                    // renderAuthButtons(); // Re-add if renderAuthButtons is uncommented
+                }
+            } catch (error) {
+                console.error('Помилка перевірки сесії:', error);
+                // renderAuthButtons(); // У випадку помилки теж показуємо кнопки авторизації // Re-add if renderAuthButtons is uncommented
+            }
+        }
+
+        // Функція для відображення кнопок "Увійти" та "Зареєструватися"
+        // function renderAuthButtons() {
+        //     const authContainer = document.getElementById('authContainer');
+        //     authContainer.innerHTML = `
+        //         <a href="/login" class="auth-button">Увійти</a>
+        //         <a href="/register" class="register-button">Зареєструватися</a>
+        //     `;
+        // }
+
+        // Функція для перемикання випадаючого меню профілю
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+
+        // Обробник кліку поза випадаючим меню для його закриття
+        document.addEventListener('click', (event) => {
+            const authContainer = document.getElementById('authContainer');
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown && authContainer && !authContainer.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Функція для виходу користувача
+        async function logoutUser() {
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    window.location.reload(); // Перезавантажуємо сторінку після успішного виходу
+                } else {
+                    // Using a custom modal message instead of alert()
+                    const modal = document.createElement('div');
+                    modal.className = 'modal';
+                    modal.innerHTML = `
+                        <div class="modal-content">
+                            <h3>Помилка</h3>
+                            <p>Помилка при виході. Спробуйте ще раз.</p>
+                            <button onclick="this.closest('.modal').style.display='none'">Закрити</button>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                    modal.style.display = 'flex';
+                    console.error('Помилка виходу:', await response.text());
+                }
+            } catch (error) {
+                // Using a custom modal message instead of alert()
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <h3>Помилка мережі</h3>
+                        <p>Помилка мережі при виході. Перевірте з'єднання.</p>
+                        <button onclick="this.closest('.modal').style.display='none'">Закрити</button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                modal.style.display = 'flex';
+                console.error('Помилка мережі при виході:', error);
+            }
+        }
+
+        // Викликаємо функцію перевірки сесії при завантаженні сторінки
+        // document.addEventListener('DOMContentLoaded', checkUserSession); // This was commented out in original selection
+    </script>
+</body>
+</html>

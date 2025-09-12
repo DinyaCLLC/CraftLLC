@@ -1,0 +1,17 @@
+{
+  "name": "craftllc",
+  "version": "1.0.0",
+  "description": "CraftLLC",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm install"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "@tsndr/cloudflare-worker-jwt": "^2.3.1",
+    "@libsql/client": "^0.6.0" // Або "@libsql/client/web" залежно від потреби
+  },
+  "devDependencies": {},
+  "author": "CraftLLC",
+  "license": "MIT"
+}
