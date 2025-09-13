@@ -6,7 +6,8 @@
   "main": "_worker.js",
   "dependencies": {
     "@neondatabase/serverless": "^0.9.4",
-    "@node-rs/argon2": "^1.8.3"
+    "@node-rs/argon2": "^1.8.3",
+    "@node-rs/argon2-wasm32-wasi": "^1.8.3"
   },
   "devDependencies": {
     "wrangler": "^3.101.0"
