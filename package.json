@@ -1,17 +1,14 @@
 {
-  "name": "craftllc",
+  "private": true,
+  "name": "craftllc-backend",
   "version": "1.0.0",
-  "description": "CraftLLC",
-  "main": "index.js",
-  "scripts": {
-    "start": "npm install"
-  },
+  "description": "Cloudflare Pages Functions for CraftLLC",
+  "main": "_worker.js",
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "@tsndr/cloudflare-worker-jwt": "^2.3.1",
-    "@libsql/client": "^0.6.0" // Або "@libsql/client/web" залежно від потреби
+    "@neondatabase/serverless": "^0.9.4",
+    "argon2": "^0.40.1"
   },
-  "devDependencies": {},
-  "author": "CraftLLC",
-  "license": "MIT"
+  "devDependencies": {
+    "wrangler": "^3.101.0"
+  }
 }
