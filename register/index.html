@@ -3,95 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Зареєструватися — CraftLLC</title>
+    <title>Реєстрація — CraftLLC</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
     <style>
         body {
             background: #141414;
             color: white;
             font-family: Arial, sans-serif;
             text-align: center;
-            padding-top: 50px;
+            margin: 0;
+            padding: 20px;
         }
         .container {
-            width: 90%;
             max-width: 400px;
-            margin: auto;
-            background: #1e1e1e;
+            margin: 50px auto;
             padding: 20px;
+            background-color: #1e1e1e;
             border-radius: 10px;
-        }
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: none;
-            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
         input {
-            background: #333;
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ffa516;
+            border-radius: 5px;
+            background-color: #333;
             color: white;
+            box-sizing: border-box;
         }
         button {
             background: linear-gradient(to right, #FFA600, #FFBB00);
+            width: 90%;
+            height: 40px;
+            border-radius: 10px;
             color: #212121;
+            font-weight: bold;
+            border: none;
             cursor: pointer;
+            margin-top: 20px;
         }
-        a {
-            color: #FFA600;
-            text-decoration: none;
+        .message {
+            margin-top: 15px;
+            color: red;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Зареєструватися</h1>
+        <h1>Реєстрація</h1>
         <form id="registerForm">
-            <input type="text" id="username" placeholder="Юзернейм" required>
+            <input type="text" id="username" placeholder="Ім'я користувача" required>
             <input type="text" id="name" placeholder="Ім'я" required>
             <input type="text" id="surname" placeholder="Прізвище" required>
-            <input type="email" id="email" placeholder="Email" required>
+            <input type="email" id="email" placeholder="Електронна пошта" required>
             <input type="password" id="password" placeholder="Пароль" required>
-            <button type="submit">Зареєструватися</button>
+            <button type="submit">Зареєструватись</button>
         </form>
-        <p id="message"></p>
-        <p>Вже є акаунт? <a href="/login">Увійти</a></p>
+        <p class="message" id="message"></p>
+        <a href="/login">Вже є обліковий запис? Увійти</a>
+        <br>
+        <a href="/">На головну</a>
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        document.getElementById('registerForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
             const username = document.getElementById('username').value;
             const name = document.getElementById('name').value;
             const surname = document.getElementById('surname').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const messageEl = document.getElementById('message');
+            const messageElement = document.getElementById('message');
 
             try {
                 const response = await fetch('/api/register', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, name, surname, email, password })
                 });
 
-                const data = await response.json();
-
                 if (response.ok) {
-                    messageEl.textContent = 'Реєстрація пройшла успішно!';
-                    messageEl.style.color = 'green';
-                    setTimeout(() => window.location.href = '/login', 1500);
+                    messageElement.textContent = 'Реєстрація успішна! Перенаправлення на сторінку входу...';
+                    messageElement.style.color = 'green';
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
                 } else {
-                    messageEl.textContent = data.error || 'Помилка реєстрації.';
-                    messageEl.style.color = 'red';
+                    const error = await response.json();
+                    messageElement.textContent = error.error || 'Помилка реєстрації. Спробуйте ще раз.';
+                    messageElement.style.color = 'red';
                 }
             } catch (error) {
-                messageEl.textContent = 'Помилка мережі. Спробуйте ще раз.';
-                messageEl.style.color = 'red';
                 console.error('Registration error:', error);
+                messageElement.textContent = 'Помилка мережі. Перевірте з\'єднання.';
+                messageElement.style.color = 'red';
             }
         });
     </script>

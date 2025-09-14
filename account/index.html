@@ -5,163 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мій акаунт — CraftLLC</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
     <style>
         body {
             background: #141414;
             color: white;
             font-family: Arial, sans-serif;
             text-align: center;
-            padding-top: 50px;
+            margin: 0;
+            padding: 20px;
         }
         .container {
-            width: 90%;
             max-width: 600px;
-            margin: auto;
-            background: #1e1e1e;
+            margin: 50px auto;
             padding: 20px;
+            background-color: #1e1e1e;
             border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-align: left;
         }
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: none;
-            box-sizing: border-box;
+        h1, h2 {
+            text-align: center;
         }
-        input {
-            background: #333;
-            color: white;
+        .info-row {
+            margin-bottom: 10px;
+        }
+        .info-row b {
+            font-weight: bold;
+        }
+        .button-group {
+            margin-top: 20px;
+            text-align: center;
         }
         button {
             background: linear-gradient(to right, #FFA600, #FFBB00);
             color: #212121;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
             cursor: pointer;
-        }
-        #deleteAccountBtn {
-            background: linear-gradient(to right, #FF4500, #FF6347);
-            color: white;
-        }
-        .input-group {
-            text-align: left;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
+            font-size: 16px;
+            margin: 5px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Мій акаунт</h1>
-        <form id="profileForm">
-            <div class="input-group">
-                <label for="username">Юзернейм:</label>
-                <input type="text" id="username" readonly>
-            </div>
-            <div class="input-group">
-                <label for="name">Ім'я:</label>
-                <input type="text" id="name">
-            </div>
-            <div class="input-group">
-                <label for="surname">Прізвище:</label>
-                <input type="text" id="surname">
-            </div>
-            <div class="input-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email">
-            </div>
-            <div class="input-group">
-                <label for="new_password">Новий пароль:</label>
-                <input type="password" id="new_password" placeholder="Залиште порожнім, щоб не змінювати">
-            </div>
-            <button type="submit">Зберегти зміни</button>
-        </form>
-        <p id="message"></p>
-        <button id="deleteAccountBtn">Видалити акаунт</button>
+    <div class="container" id="accountContainer">
+        <h1>Завантаження...</h1>
     </div>
 
     <script>
-        const messageEl = document.getElementById('message');
-        const usernameInput = document.getElementById('username');
-        const nameInput = document.getElementById('name');
-        const surnameInput = document.getElementById('surname');
-        const emailInput = document.getElementById('email');
-        const newPasswordInput = document.getElementById('new_password');
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
 
-        // Fetch user data and populate form
-        async function fetchUserData() {
+        async function renderAccountPage() {
+            const container = document.getElementById('accountContainer');
+            const sessionToken = getCookie('session_token');
+
+            if (!sessionToken) {
+                window.location.href = '/login';
+                return;
+            }
+
             try {
-                const response = await fetch('/api/user');
+                const response = await fetch('/api/user', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
                 if (response.ok) {
-                    const userData = await response.json();
-                    usernameInput.value = userData.username;
-                    nameInput.value = userData.name;
-                    surnameInput.value = userData.surname;
-                    emailInput.value = userData.email;
+                    const user = await response.json();
+                    container.innerHTML = `
+                        <h2>Особистий кабінет</h2>
+                        <div class="info-row"><b>Ім'я користувача:</b> ${user.username}</div>
+                        <div class="info-row"><b>Ім'я:</b> ${user.name}</div>
+                        <div class="info-row"><b>Прізвище:</b> ${user.surname}</div>
+                        <div class="info-row"><b>Електронна пошта:</b> ${user.email}</div>
+                        <div class="button-group">
+                            <button onclick="window.location.href='/'">На головну</button>
+                            <button onclick="logoutUser()">Вийти</button>
+                        </div>
+                    `;
                 } else {
-                    window.location.href = '/login'; // Redirect if not logged in
+                    window.location.href = '/login';
                 }
             } catch (error) {
-                console.error('Failed to fetch user data:', error);
+                console.error("Помилка завантаження даних акаунта:", error);
                 window.location.href = '/login';
             }
         }
-        fetchUserData();
 
-        // Update profile form submission
-        document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const updatedData = {
-                username: usernameInput.value,
-                name: nameInput.value,
-                surname: surnameInput.value,
-                email: emailInput.value,
-            };
-            if (newPasswordInput.value) {
-                updatedData.new_password = newPasswordInput.value;
-            }
-
+        async function logoutUser() {
             try {
-                const response = await fetch('/api/profile/update', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updatedData)
-                });
-                const data = await response.json();
+                const response = await fetch('/api/logout', { method: 'POST' });
                 if (response.ok) {
-                    messageEl.textContent = 'Дані успішно оновлено!';
-                    messageEl.style.color = 'green';
-                    newPasswordInput.value = '';
+                    window.location.href = '/login';
                 } else {
-                    messageEl.textContent = data.error || 'Помилка оновлення.';
-                    messageEl.style.color = 'red';
+                    console.error('Logout failed');
                 }
             } catch (error) {
-                messageEl.textContent = 'Помилка мережі. Спробуйте ще раз.';
-                messageEl.style.color = 'red';
+                console.error('Network error during logout:', error);
             }
-        });
+        }
 
-        // Delete account
-        document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
-            if (confirm('Ви впевнені, що хочете видалити свій акаунт? Цю дію не можна скасувати.')) {
-                try {
-                    const response = await fetch('/api/account/delete', {
-                        method: 'DELETE'
-                    });
-                    if (response.ok) {
-                        alert('Акаунт успішно видалено.');
-                        window.location.href = '/';
-                    } else {
-                        const data = await response.json();
-                        alert(data.error || 'Помилка видалення акаунту.');
-                    }
-                } catch (error) {
-                    alert('Помилка мережі при видаленні акаунту.');
-                }
-            }
-        });
+        document.addEventListener('DOMContentLoaded', renderAccountPage);
     </script>
 </body>
 </html>
