@@ -1703,15 +1703,15 @@ document.addEventListener("DOMContentLoaded", () => {
         <p class="copyright">© Андрій Рудик 2024-2025</p>
     </section>
     <script>
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('mainPageView') === 'true') {
-        const header = document.querySelector('header');
-        const footer = document.getElementById('footerID');
-        const logo = document.getElementById('logo')
-        if (header) header.style.display = 'none';
-        if (footer) footer.style.display = 'none';
-        if (logo) logo.style.display = 'none';
-    }
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('mainPageView') === 'true') {
+            const header = document.querySelector('header');
+            const footer = document.getElementById('footerID');
+            const logo = document.getElementById('logo')
+            if (header) header.style.display = 'none';
+            if (footer) footer.style.display = 'none';
+            if (logo) logo.style.display = 'none';
+        }
     </script>
 </body>
 </html>
