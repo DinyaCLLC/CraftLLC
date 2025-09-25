@@ -471,136 +471,6 @@
     </section>
 
     <script>
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-        }
-
-        async function checkUserSession() {
-            const authContainer = document.getElementById('authContainer');
-            authContainer.innerHTML = '';
-            
-            const sessionToken = getCookie('session_token');
-
-            if (sessionToken) {
-                try {
-                    const response = await fetch('/api/user', {
-                        method: 'GET',
-                    });
-                    
-                    if (response.ok) {
-                        const userData = await response.json();
-                        if (userData && userData.username) {
-                            renderProfileInfo(userData);
-                        } else {
-                            renderAuthButtons();
-                        }
-                    } else {
-                        renderAuthButtons();
-                    }
-                } catch (error) {
-                    console.error('Помилка перевірки сесії:', error);
-                    renderAuthButtons();
-                }
-            } else {
-                renderAuthButtons();
-            }
-        }
-
-        function renderAuthButtons() {
-            const authContainer = document.getElementById('authContainer');
-            authContainer.innerHTML = `
-                <a href="/login" class="auth-button">Увійти</a>
-                <a href="/register" class="register-button">Зареєструватися</a>
-            `;
-        }
-
-        function renderProfileInfo(userData) {
-            const authContainer = document.getElementById('authContainer');
-            
-            const profileInfoDiv = document.createElement('div');
-            profileInfoDiv.className = 'profile-info';
-            profileInfoDiv.onclick = toggleProfileDropdown;
-
-            const avatarDiv = document.createElement('div');
-            avatarDiv.className = 'avatar';
-            if (userData.avatar_url) {
-                const avatarImg = document.createElement('img');
-                avatarImg.src = userData.avatar_url;
-                avatarImg.alt = 'User Avatar';
-                avatarDiv.appendChild(avatarImg);
-            } else {
-                avatarDiv.textContent = userData.username.charAt(0).toUpperCase();
-            }
-            profileInfoDiv.appendChild(avatarDiv);
-
-            const usernameSpan = document.createElement('span');
-            usernameSpan.textContent = userData.username;
-            profileInfoDiv.appendChild(usernameSpan);
-
-            authContainer.appendChild(profileInfoDiv);
-
-            const profileDropdownDiv = document.createElement('div');
-            profileDropdownDiv.className = 'profile-dropdown';
-            profileDropdownDiv.id = 'profileDropdown';
-
-            const nameP = document.createElement('p');
-            nameP.textContent = `Ім'я користувача: ${userData.username}`;
-            profileDropdownDiv.appendChild(nameP);
-
-            if (userData.name) {
-                const realNameP = document.createElement('p');
-                realNameP.textContent = `Справжнє ім'я: ${userData.name}`;
-                profileDropdownDiv.appendChild(realNameP);
-            }
-
-            const accountButton = document.createElement('button');
-            accountButton.className = 'auth-button account-btn';
-            accountButton.textContent = 'Мій акаунт';
-            accountButton.onclick = () => window.location.href = '/account';
-            profileDropdownDiv.appendChild(accountButton);
-
-            const logoutButton = document.createElement('button');
-            logoutButton.textContent = 'Вийти';
-            logoutButton.onclick = logoutUser;
-            profileDropdownDiv.appendChild(logoutButton);
-
-            authContainer.appendChild(profileDropdownDiv);
-        }
-
-        function toggleProfileDropdown() {
-            const dropdown = document.getElementById('profileDropdown');
-            if (dropdown) {
-                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-            }
-        }
-
-        document.addEventListener('click', (event) => {
-            const authContainer = document.getElementById('authContainer');
-            const dropdown = document.getElementById('profileDropdown');
-            if (dropdown && authContainer && !authContainer.contains(event.target)) {
-                dropdown.style.display = 'none';
-            }
-        });
-
-        async function logoutUser() {
-            try {
-                const response = await fetch('/api/logout', { method: 'POST' });
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    console.error('Logout failed');
-                }
-            } catch (error) {
-                console.error('Network error during logout:', error);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', checkUserSession);
-    </script>
-
-    <script>
         // Load cheat codes from localStorage or initialize empty
         let cheatCodesUsed = JSON.parse(localStorage.getItem('cheatCodesUsed')) || {};
 
@@ -938,7 +808,7 @@
         }
 
         // Викликаємо функцію перевірки сесії при завантаженні сторінки
-        document.addEventListener('DOMContentLoaded', checkUserSession); // This was commented out in original selection
+        // document.addEventListener('DOMContentLoaded', checkUserSession); // This was commented out in original selection
     </script>
 </body>
 </html>
