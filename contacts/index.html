@@ -62,29 +62,32 @@
         @keyframes l13{ 
             100%{transform: rotate(1turn)}
         }
+        /* Стилі для хедера (Flexbox) */
         header {
-            /* Видаляємо відступи, які можуть заважати вирівнюванню */
-            padding: 10px 5%; /* Невеликий внутрішній відступ */
-            background-color: #161616; /* Додаємо фон для хедера */
+            padding: 10px 5%;
+            background-color: #161616;
             width: 100%;
-            box-sizing: border-box; /* Важливо для контролю ширини */
-            display: flex; /* Увімкнення Flexbox для горизонтального вирівнювання */
-            justify-content: space-between; /* Розносить логотип і навігацію на протилежні кінці */
-            align-items: center; /* Центрує по вертикалі */
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between; /* Розносить лого і меню */
+            align-items: center;
         }
+
         .logo-container img {
-            height: 40px; /* Задайте фіксовану висоту для логотипу */
-            width: auto; /* Автоматична ширина */
+            height: 40px; 
+            width: auto; 
             display: block;
         }
-        /* Стилі для навігаційної панелі */
+
+        /* Стилі для горизонтальної навігаційної панелі на великих екранах */
         .nav-menu ul {
-            list-style: none; /* Прибираємо маркери списку */
+            list-style: none;
             margin: 0;
             padding: 0;
-            display: flex; /* Увімкнення Flexbox для горизонтального меню */
-            gap: 20px; /* Проміжок між елементами меню */
+            display: flex; /* Горизонтальне меню */
+            gap: 20px;
         }
+
         .nav-menu a {
             color: white;
             text-decoration: none;
@@ -92,8 +95,21 @@
             font-weight: bold;
             transition: color 0.3s;
         }
+
         .nav-menu a:hover {
-            color: #FFA600; /* Зміна кольору при наведенні */
+            color: #FFA600;
+        }
+        
+        /* Приховуємо кнопку гамбургера на великих екранах за замовчуванням */
+        .menu-toggle {
+            display: none; 
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px;
+            margin: 0;
         }
         footer {
             margin: 0;
@@ -137,6 +153,52 @@
             font-size: 13px;
             color: #aaa;
         }
+        @media (max-width: 768px) {
+            /* Показуємо гамбургер-кнопку */
+            .menu-toggle {
+                display: block;
+            }
+
+            /* Приховуємо горизонтальне меню за замовчуванням */
+            .nav-menu {
+                display: none; 
+                position: absolute;
+                top: 60px; /* Висота хедера + невеликий відступ */
+                left: 0;
+                width: 100%;
+                background-color: #161616;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                z-index: 1000;
+                text-align: left;
+            }
+
+            /* Меню, коли воно активне (показується) */
+            .nav-menu.active {
+                display: block;
+            }
+            
+            /* Робимо список вертикальним */
+            .nav-menu ul {
+                flex-direction: column; 
+                padding: 10px 5%;
+            }
+            
+            .nav-menu li {
+                margin: 0;
+            }
+            
+            /* Стилізуємо посилання як блок, щоб вони займали всю ширину */
+            .nav-menu a {
+                display: block;
+                padding: 10px 0;
+                border-bottom: 1px solid #222; 
+            }
+
+            /* Прибираємо нижню межу на останньому елементі */
+            .nav-menu li:last-child a {
+                border-bottom: none;
+            }
+        }
     </style>
     <header>
         <div class="logo-container">
@@ -144,6 +206,11 @@
                 <img src="/logo.png" id="header-logo" alt="Логотип CraftLLC">
             </a>
         </div>
+        
+        <button class="menu-toggle" aria-label="Перемкнути навігаційну панель" aria-expanded="false">
+            <i class="fas fa-bars"></i>
+        </button>
+
         <nav class="nav-menu">
             <ul>
                 <li><a href="/">Головна</a></li>
@@ -192,6 +259,25 @@
     }
 
     document.addEventListener("DOMContentLoaded", setSpecialDateAssets);
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // ЛОГІКА ДЛЯ АДАПТИВНОГО МЕНЮ
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+
+            if (menuToggle && navMenu) {
+                menuToggle.addEventListener('click', () => {
+                    const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true' || false;
+                    
+                    // Перемикаємо клас active для відображення меню
+                    navMenu.classList.toggle('active'); 
+                    
+                    // Оновлюємо атрибут для доступності
+                    menuToggle.setAttribute('aria-expanded', !isExpanded); 
+                });
+            }
+        });
     </script>
 </head>
 <body>
