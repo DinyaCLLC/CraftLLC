@@ -63,6 +63,39 @@
         @keyframes l13{ 
             100%{transform: rotate(1turn)}
         }
+        header {
+            /* Видаляємо відступи, які можуть заважати вирівнюванню */
+            padding: 10px 5%; /* Невеликий внутрішній відступ */
+            background-color: #161616; /* Додаємо фон для хедера */
+            width: 100%;
+            box-sizing: border-box; /* Важливо для контролю ширини */
+            display: flex; /* Увімкнення Flexbox для горизонтального вирівнювання */
+            justify-content: space-between; /* Розносить логотип і навігацію на протилежні кінці */
+            align-items: center; /* Центрує по вертикалі */
+        }
+        .logo-container img {
+            height: 40px; /* Задайте фіксовану висоту для логотипу */
+            width: auto; /* Автоматична ширина */
+            display: block;
+        }
+        /* Стилі для навігаційної панелі */
+        .nav-menu ul {
+            list-style: none; /* Прибираємо маркери списку */
+            margin: 0;
+            padding: 0;
+            display: flex; /* Увімкнення Flexbox для горизонтального меню */
+            gap: 20px; /* Проміжок між елементами меню */
+        }
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        .nav-menu a:hover {
+            color: #FFA600; /* Зміна кольору при наведенні */
+        }
         footer {
             margin: 0;
             padding: 40px 0;
@@ -107,35 +140,23 @@
         }
     </style>
     <header>
-        <a href="/"><button>Головна</button></a>
-        <br><br>
-        <a href="/contacts"><button>Контакти</button></a>
-        <br><br>
-        <a href="/recipes"><button>Рецепти</button></a>
+        <div class="logo-container">
+            <a href="/">
+                <img src="/logo.png" id="header-logo" alt="Логотип CraftLLC">
+            </a>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="/">Головна</a></li>
+                <li><a href="/contacts">Контакти</a></li>
+                <li><a href="/recipes">Рецепти</a></li>
+            </ul>
+        </nav>
     </header>
     <!-- Cloudflare Web Analytics -->
     <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "86e4717144d44d26a30bb98452c1e06b"}'></script>
     <!-- End Cloudflare Web Analytics -->
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const isLight = urlParams.get('light') === 'true';
-        if (isLight) {
-            document.body.style.background = 'none';
-            document.body.style.color = 'black';
-            document.getElementById("footerID").style.background = "#ededed";
-            const allLinks = document.querySelectorAll('a');
-            allLinks.forEach(link => {
-                link.style.color = 'black';
-                const linkUrl = new URL(link.href);
-                if (!linkUrl.searchParams.has('light')) {
-                    linkUrl.searchParams.set('light', 'true');
-                    link.href = linkUrl.toString();
-                }
-            });
-        }
-    });
-    </script>
+    
     <script>
     // Коли все завантажено – ховаємо лоадер
     window.addEventListener('load', () => {
@@ -186,7 +207,7 @@
     <div id="loader-wrapper">
         <div class="loader"></div>
     </div>
-    <img src="/logo.png" width=90% id="logo"></img>
+
     <h1>Контакти</h1>
 
     <h2>Через пошту</h2>
