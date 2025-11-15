@@ -1133,10 +1133,21 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
+        let linkHref = '#';
+        if (recipe.video_id) {
+            linkHref = `https://youtube.com/watch?v=${recipe.video_id}`;
+        } else if (recipe.video_src) {
+            if (recipe.video_link) {
+                linkHref = recipe.video_link;
+            } else {
+                linkHref = recipe.video_src;
+            }
+        }
+
         card.innerHTML = `
             ${videoElement}
             <div class="card__body">
-                <a href="${recipe.video_id ? `https://youtu.be/${recipe.video_id}` : '#'}" class="card__title" target="_blank">${recipe.name}</a>
+                <a href="${linkHref}" class="card__title" target="_blank">${recipe.name}</a>
                 <p class="card__desc">
                     ${recipe.description || ''}
                     ${propertiesHtml}
