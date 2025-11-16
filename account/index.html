@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мій акаунт</title>
+    <style>
+        /* Загальні стилі */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Хедер */
+        header {
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-decoration: none;
+            color: #333;
+        }
+
+        #auth-container .btn {
+            margin-left: 10px;
+            padding: 8px 12px;
+            text-decoration: none;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+
+        #auth-container .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        #auth-container .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        #auth-container .btn-primary {
+            background-color: #007bff;
+            color: #fff;
+            border-color: #007bff;
+        }
+        #auth-container .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        #auth-container #profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #auth-container #logout-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            margin-left: 15px;
+            font-size: 0.9em;
+        }
+
+        /* Форми */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            font-size: 1em;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Сторінка акаунту */
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .danger-zone {
+            border-left: 4px solid #dc3545;
+        }
+
+        .danger-zone .danger {
+            background-color: #dc3545;
+        }
+        .danger-zone .danger:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <a href="/" class="logo">CraftLLC</a>
+            <div id="auth-container"></div>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1>Мій акаунт</h1>
+        <div id="account-info" class="card">
+            <p><strong>Юзернейм:</strong> <span id="username-display">завантаження...</span></p>
+            <p><strong>Email:</strong> <span id="email-display">завантаження...</span></p>
+        </div>
+
+        <div class="card">
+            <h2>Змінити пароль</h2>
+            <p>Після зміни пароля вам доведеться увійти в систему знову.</p>
+            <form id="change-password-form">
+                <div class="form-group">
+                    <label for="new-password">Новий пароль</label>
+                    <input type="password" id="new-password" required>
+                </div>
+                <button type="submit">Змінити пароль</button>
+            </form>
+            <p id="password-message" class="message"></p>
+        </div>
+
+        <div class="card danger-zone">
+            <h2>Небезпечна зона</h2>
+            <p>Видалення акаунту є незворотною дією.</p>
+            <button id="delete-account-btn" class="danger">Видалити акаунт</button>
+            <p id="delete-message" class="message"></p>
+        </div>
+    </main>
+
+    <script>
+        // --- Вбудована логіка автентифікації ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const authContainer = document.getElementById('auth-container');
+
+            const checkLoginStatus = async () => {
+                try {
+                    const response = await fetch('/api/me');
+                    if (response.ok) {
+                        const user = await response.json();
+                        renderLoggedIn(user);
+                        // Запускаємо логіку сторінки акаунта тільки якщо користувач залогінений
+                        initializeAccountPage(user);
+                    } else {
+                        // Якщо не залогінений, перенаправляємо
+                        window.location.href = '/login/';
+                    }
+                } catch (error) {
+                    console.error('Error checking login status:', error);
+                    window.location.href = '/login/';
+                }
+            };
+
+            const renderLoggedOut = () => {
+                if (!authContainer) return;
+                authContainer.innerHTML = `
+                    <a href="/register/" class="btn btn-secondary">Реєстрація</a>
+                    <a href="/login/" class="btn btn-primary">Вхід</a>
+                `;
+            };
+
+            const renderLoggedIn = (user) => {
+                if (!authContainer) return;
+                const initial = user.username.charAt(0).toUpperCase();
+                authContainer.innerHTML = `
+                    <a href="/account/" id="profile-icon" title="Мій акаунт">${initial}</a>
+                    <button id="logout-btn" title="Вийти">Вийти</button>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            };
+
+            const handleLogout = async () => {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/';
+            };
+
+            checkLoginStatus();
+        });
+
+        // --- Вбудована логіка для сторінки акаунта ---
+        function initializeAccountPage(user) {
+            const usernameDisplay = document.getElementById('username-display');
+            const emailDisplay = document.getElementById('email-display');
+            const changePasswordForm = document.getElementById('change-password-form');
+            const passwordMessage = document.getElementById('password-message');
+            const deleteAccountBtn = document.getElementById('delete-account-btn');
+            const deleteMessage = document.getElementById('delete-message');
+
+            // 1. Відображаємо дані користувача
+            if (user.username) {
+                usernameDisplay.textContent = user.username;
+            }
+            if (user.email) {
+                emailDisplay.textContent = user.email;
+            }
+
+            // 2. Обробка форми зміни пароля
+            changePasswordForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                passwordMessage.textContent = '';
+                const newPassword = document.getElementById('new-password').value;
+
+                if (!newPassword) {
+                    passwordMessage.textContent = 'Новий пароль не може бути порожнім.';
+                    passwordMessage.className = 'message error';
+                    return;
+                }
+
+                try {
+                    const res = await fetch('/api/change-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ newPassword })
+                    });
+
+                    const result = await res.json();
+
+                    if (res.ok) {
+                        passwordMessage.textContent = 'Пароль успішно змінено! Зараз вас буде перенаправлено на сторінку входу.';
+                        passwordMessage.className = 'message success';
+                        changePasswordForm.reset();
+                        setTimeout(() => {
+                            // Виконуємо вихід, щоб очистити cookie
+                            fetch('/api/logout', { method: 'POST' }).then(() => {
+                                window.location.href = '/login/';
+                            });
+                        }, 2000);
+                    } else {
+                        passwordMessage.textContent = `Помилка: ${result.error || 'Не вдалося змінити пароль'}`;
+                        passwordMessage.className = 'message error';
+                    }
+                } catch (err) {
+                    passwordMessage.textContent = 'Сталася помилка мережі.';
+                    passwordMessage.className = 'message error';
+                }
+            });
+
+            // 3. Обробка видалення акаунту
+            deleteAccountBtn.addEventListener('click', async () => {
+                deleteMessage.textContent = '';
+
+                const isConfirmed = confirm('ВИ ВПЕВНЕНІ? Ця дія незворотна. Ваш акаунт і всі пов\'язані дані буде видалено назавжди.');
+                if (!isConfirmed) return;
+
+                try {
+                    const res = await fetch('/api/delete-account', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({}) // Пароль більше не потрібен, бо сесія вже перевірена
+                    });
+
+                    if (res.ok) {
+                        alert('Ваш акаунт було видалено. Зараз вас буде перенаправлено на головну сторінку.');
+                        window.location.href = '/';
+                    } else {
+                        const result = await res.json();
+                        deleteMessage.textContent = `Помилка: ${result.error || 'Не вдалося видалити акаунт'}`;
+                        deleteMessage.className = 'message error';
+                    }
+                } catch (err) {
+                    deleteMessage.textContent = 'Сталася помилка мережі.';
+                    deleteMessage.className = 'message error';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

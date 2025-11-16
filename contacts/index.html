@@ -10,111 +10,122 @@
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
     <style>
+        /* Загальні стилі */
         body {
-            background: #141414;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
+            background-color: #141414;
+            color: #f4f4f9;
+            line-height: 1.6;
         }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Хедер */
+        header {
+            background: #161616;
+            border-bottom: 1px solid #333;
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-decoration: none;
+            color: #f4f4f9;
+        }
+        
+        nav a {
+            color: #f4f4f9;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        #auth-container .btn {
+            margin-left: 10px;
+            padding: 8px 12px;
+            text-decoration: none;
+            border: 1px solid #555;
+            border-radius: 5px;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+
+        #auth-container .btn-secondary {
+            background-color: #333;
+            color: #fff;
+        }
+        #auth-container .btn-secondary:hover {
+            background-color: #444;
+        }
+
+        #auth-container .btn-primary {
+            background-color: #FFA600;
+            color: #141414;
+            border-color: #FFA600;
+        }
+        #auth-container .btn-primary:hover {
+            background-color: #FFBB00;
+        }
+
+        #auth-container #profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #FFA600;
+            color: #141414;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #auth-container #logout-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            margin-left: 15px;
+            font-size: 0.9em;
+        }
+        
+        main {
+            text-align: center;
+        }
+
         button {
             background: linear-gradient(to right, #FFA600, #FFBB00);
             width: 90%;
+            max-width: 300px;
             height: 45px;
             border-radius: 10px;
             border: none;
             cursor: pointer;
             font-size: 16px;
-        }
-        h1, h2 {
-            margin: 20px 0;
-        }
-        p {
-            margin: 10px 0;
-        }
-        a {
-            text-decoration: none;
-            color: white;
-        }
-        /* Лоадер */
-        #loader-wrapper {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #141414;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        .loader {
-            width: 50px;
-            aspect-ratio: 1;
-            border-radius: 50%;
-            background: 
-                radial-gradient(farthest-side,#ffa516 94%,#0000) top/8px 8px no-repeat,
-                conic-gradient(#0000 30%,#ffa516);
-            -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
-            animation: l13 1s infinite linear;
-        }
-        @keyframes l13{ 
-            100%{transform: rotate(1turn)}
-        }
-        /* Стилі для хедера (Flexbox) */
-        header {
-            padding: 10px;
-            background-color: #161616;
-            width: 100%;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: space-between; /* Розносить лого і меню */
-            align-items: center;
-        }
-
-        .logo-container img {
-            height: 40px; 
-            width: auto; 
-            display: block;
-        }
-
-        /* Стилі для горизонтальної навігаційної панелі на великих екранах */
-        .nav-menu ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex; /* Горизонтальне меню */
-            gap: 20px;
-        }
-
-        .nav-menu a {
-            color: white;
-            text-decoration: none;
-            padding: 5px 10px;
+            margin-top: 10px;
+            color: #141414;
             font-weight: bold;
-            transition: color 0.3s;
-        }
-
-        .nav-menu a:hover {
-            color: #FFA600;
         }
         
-        /* Приховуємо кнопку гамбургера на великих екранах за замовчуванням */
-        .menu-toggle {
-            display: none; 
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
+        a {
+            text-decoration: none;
         }
-        .menu-toggle i {
-            display: flex;
-            align-self: start;
-        }
+
         footer {
-            margin: 0;
+            margin-top: 40px;
             padding: 40px 0;
             background-color: #161616;
             box-sizing: border-box;
@@ -124,9 +135,9 @@
             text-align: center;
             padding-bottom: 25px;
             font-size: 24px;
-            text-decoration: none;
         }
         footer .social a {
+            color: #ccc;
             border: 1px solid #ccc;
             border-radius: 30%;
             width: 40px;
@@ -140,188 +151,49 @@
         footer .social a:hover {
             opacity: 1.0;
         }
-        footer .social .fa-telegram {
-            color: #29a0dc;
-        }
-        footer .social .fa-youtube {
-            color: #ff0000;
-        }
-        footer .social .fa-instagram {
-            color: #e1306c;
-        }
         footer .copyright {
             margin-top: 5px;
             text-align: center;
             font-size: 13px;
             color: #aaa;
         }
-        @media (max-width: 768px) {
-            /* Показуємо гамбургер-кнопку */
-            .menu-toggle {
-                display: block;
-                order: 1;
-            }
-
-            .logo-container {
-                order: 2;
-            }
-
-            /* Приховуємо горизонтальне меню за замовчуванням */
-            .nav-menu {
-                display: none; 
-                position: absolute;
-                top: 60px; /* Висота хедера + невеликий відступ */
-                left: 0;
-                width: 100%;
-                background-color: #161616;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-                z-index: 1000;
-                text-align: left;
-            }
-
-            /* Меню, коли воно активне (показується) */
-            .nav-menu.active {
-                display: block;
-            }
-            
-            /* Робимо список вертикальним */
-            .nav-menu ul {
-                flex-direction: column; 
-                padding: 10px 5%;
-            }
-            
-            .nav-menu li {
-                margin: 0;
-            }
-            
-            /* Стилізуємо посилання як блок, щоб вони займали всю ширину */
-            .nav-menu a {
-                display: block;
-                padding: 10px 0;
-                border-bottom: 1px solid #222; 
-            }
-
-            /* Прибираємо нижню межу на останньому елементі */
-            .nav-menu li:last-child a {
-                border-bottom: none;
-            }
-        }
     </style>
-    <header>
-        <button class="menu-toggle" aria-label="Перемкнути навігаційну панель" aria-expanded="false">
-            <i class="fas fa-bars"></i>
-        </button>
-
-        <div class="logo-container">
-            <a href="/">
-                <img src="/logo.png" id="header-logo" alt="Логотип CraftLLC">
-            </a>
-        </div>
-
-        <nav class="nav-menu">
-            <ul>
-                <li><a href="/">Головна</a></li>
-                <li><a href="/contacts">Контакти</a></li>
-                <li><a href="/recipes">Рецепти</a></li>
-            </ul>
-        </nav>
-    </header>
-    <!-- Cloudflare Web Analytics -->
-    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "86e4717144d44d26a30bb98452c1e06b"}'></script>
-    <!-- End Cloudflare Web Analytics -->
-
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const loaderWrapper = document.getElementById('loader-wrapper');
-        if (loaderWrapper) {
-            loaderWrapper.style.display = 'none';
-        }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const isMainPageView = urlParams.get('mainPageView') === 'true';
-
-        if (isMainPageView) {
-            const loader = document.getElementById('loader-wrapper');
-            if (loader) {
-                loader.style.display = 'none';
-            }
-        }
-    });
-
-    function setSpecialDateAssets() {
-        const today = new Date();
-        const day = today.getDate();
-        const month = today.getMonth() + 1;
-
-        const favicon = document.getElementById('favicon');
-        const logo = document.getElementById('logo');
-
-        if (month === 1 && day === 1) {
-            favicon.href = '/favicon2.ico';
-            logo.src = '/logo2.png';
-        } 
-        else if (month === 3 && day === 8) {
-            favicon.href = '/favicon.ico';
-            logo.src = '/logo3.png';
-        } 
-        else if (month === 9 && day === 26) {
-            favicon.href = '/favicon_birthday.ico';
-            logo.src = '/logo_birthday.png';
-        } 
-        else {
-            favicon.href = '/favicon.ico';
-            logo.src = '/logo.png';
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", setSpecialDateAssets);
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // ЛОГІКА ДЛЯ АДАПТИВНОГО МЕНЮ
-            const menuToggle = document.querySelector('.menu-toggle');
-            const navMenu = document.querySelector('.nav-menu');
-
-            if (menuToggle && navMenu) {
-                menuToggle.addEventListener('click', () => {
-                    const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true' || false;
-                    
-                    // Перемикаємо клас active для відображення меню
-                    navMenu.classList.toggle('active'); 
-                    
-                    // Оновлюємо атрибут для доступності
-                    menuToggle.setAttribute('aria-expanded', !isExpanded); 
-                });
-            }
-        });
-    </script>
 </head>
 <body>
     <noscript>
         <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #141414; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10001; text-align: center; padding: 20px;">
             <h1>JavaScript вимкнено</h1>
             <p>Цей сайт вимагає увімкненого JavaScript для коректної роботи.</p>
-            <p>Будь ласка, увімкніть JavaScript у налаштуваннях вашого браузера, щоб продовжити.</p>
         </div>
     </noscript>
 
-    <div id="loader-wrapper">
-        <div class="loader"></div>
-    </div>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">CraftLLC</a>
+            <nav>
+                 <a href="/">Головна</a>
+                 <a href="/recipes">Рецепти</a>
+            </nav>
+            <div id="auth-container"></div>
+        </div>
+    </header>
 
-    <h1>Контакти</h1>
+    <main class="container">
+        <h1>Контакти</h1>
 
-    <h2>Через пошту</h2>
-    <a href="mailto:craftllcompany@gmail.com"><button>craftllcompany@gmail.com</button></a>
-    <br><br><br>
-    <a href="market://details?id=com.google.android.gm"><button>Завантажити Gmail</button></a>
-    <br><br>
-    <a href="market://details?id=com.microsoft.office.outlook"><button>Завантажити Outlook</button></a>
+        <h2>Через пошту</h2>
+        <a href="mailto:craftllcompany@gmail.com"><button>craftllcompany@gmail.com</button></a>
+        <br><br><br>
+        <a href="market://details?id=com.google.android.gm"><button>Завантажити Gmail</button></a>
+        <br><br>
+        <a href="market://details?id=com.microsoft.office.outlook"><button>Завантажити Outlook</button></a>
 
-    <h2>Через Telegram</h2>
-    <a href="tg:resolve?domain=CraftLLCSupport"><button>@CraftLLCSupport</button></a>
-    <br><br>
-    <a href="market://details?id=org.telegram.messenger"><button>Завантажити Telegram</button></a>
+        <h2>Через Telegram</h2>
+        <a href="tg:resolve?domain=CraftLLCSupport"><button>@CraftLLCSupport</button></a>
+        <br><br>
+        <a href="market://details?id=org.telegram.messenger"><button>Завантажити Telegram</button></a>
+    </main>
+    
     <br><br><br><br>
     <footer id="footerID">
         <div class="social">
@@ -334,15 +206,54 @@
 
         <p class="copyright">© Андрій Рудик 2024-2025</p>
     </footer>
+
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "86e4717144d44d26a30bb98452c1e06b"}'></script>
     <script>
-    // Приховуємо header, якщо mainPageView=true
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('mainPageView') === 'true') {
-        const header = document.querySelector('header');
-        const footer = document.getElementById('footerID');
-        if (header) header.style.display = 'none';
-        if (footer) footer.style.display = 'none';
-    }
+        // --- Вбудована логіка автентифікації ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const authContainer = document.getElementById('auth-container');
+
+            const checkLoginStatus = async () => {
+                try {
+                    const response = await fetch('/api/me');
+                    if (response.ok) {
+                        const user = await response.json();
+                        renderLoggedIn(user);
+                    } else {
+                        renderLoggedOut();
+                    }
+                } catch (error) {
+                    console.error('Error checking login status:', error);
+                    renderLoggedOut();
+                }
+            };
+
+            const renderLoggedOut = () => {
+                if (!authContainer) return;
+                authContainer.innerHTML = `
+                    <a href="/register/" class="btn btn-secondary">Реєстрація</a>
+                    <a href="/login/" class="btn btn-primary">Вхід</a>
+                `;
+            };
+
+            const renderLoggedIn = (user) => {
+                if (!authContainer) return;
+                const initial = user.username.charAt(0).toUpperCase();
+                authContainer.innerHTML = `
+                    <a href="/account/" id="profile-icon" title="Мій акаунт">
+${initial}</a>
+                    <button id="logout-btn" title="Вийти">Вийти</button>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            };
+
+            const handleLogout = async () => {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/';
+            };
+
+            checkLoginStatus();
+        });
     </script>
 </body>
 </html>
