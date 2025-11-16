@@ -152,40 +152,95 @@ async function handleApiRequest(request, env, url) {
   // GET /api/recipes/:id/comments - Отримати коментарі для рецепта
   if (recipeCommentsMatch && request.method === "GET") {
     const recipeId = recipeCommentsMatch[1];
-    
-    const { data, error } = await supabase
-      .from('comments')
-      .select(`
-        id,
-        created_at,
-        content,
-        parent_id,
-        user_id
-      `)
-      .eq('recipe_id', recipeId)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching comments:', error);
-      return jsonResponse({ error: "Failed to fetch comments" }, 500);
+    const sessionCookie = getCookie(request, "auth_session");
+    let currentUserId = null;
+    if (sessionCookie) {
+        try {
+            const isValid = await verify(sessionCookie, env.JWT_SECRET);
+            if (isValid) {
+                currentUserId = isValid.payload.sub;
+            }
+        } catch (err) {
+            // Ignore invalid/expired cookie
+        }
     }
 
-    // Створюємо дерево коментарів
-    const commentsById = new Map(data.map(c => [c.id, { ...c, replies: [] }]));
+    // Fetch comments
+    const { data: commentsData, error: commentsError } = await supabase
+        .from('comments')
+        .select(`
+            id,
+            created_at,
+            content,
+            parent_id,
+            user_id
+        `)
+        .eq('recipe_id', recipeId)
+        .order('created_at', { ascending: true });
+
+    if (commentsError) {
+        console.error('Error fetching comments:', commentsError);
+        return jsonResponse({ error: "Failed to fetch comments" }, 500);
+    }
+
+    // Collect unique user IDs from comments
+    const uniqueUserIds = [...new Set(commentsData.map(c => c.user_id).filter(Boolean))]; // Filter out null/undefined user_id
+    const usersMap = new Map();
+
+    // Fetch usernames for all unique user IDs in parallel
+    await Promise.all(uniqueUserIds.map(async (userId) => {
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+        if (userData && userData.user && userData.user.user_metadata && userData.user.user_metadata.username) {
+            usersMap.set(userId, userData.user.user_metadata.username);
+        } else if (userError) {
+            console.warn(`Error fetching user ${userId}:`, userError.message);
+        }
+    }));
+
+    // Process comments to add author_username, likes_count, and has_liked
+    const commentsWithDetails = await Promise.all(commentsData.map(async (comment) => {
+        // Fetch like count for this comment
+        const { count: likesCount, error: likeCountError } = await supabase
+            .from('likes')
+            .select('*', { count: 'exact', head: true })
+            .eq('comment_id', comment.id);
+
+        if (likeCountError) {
+            console.warn(`Error fetching like count for comment ${comment.id}:`, likeCountError.message);
+        }
+
+        // Check if current user liked this comment
+        let hasLiked = false;
+        if (currentUserId) {
+            const { data: userLike, error: userLikeError } = await supabase
+                .from('likes')
+                .select('id')
+                .eq('comment_id', comment.id)
+                .eq('user_id', currentUserId)
+                .single();
+            if (userLike && !userLikeError) {
+                hasLiked = true;
+            }
+        }
+
+        return {
+            ...comment,
+            author_username: usersMap.get(comment.user_id) || 'Anonymous',
+            likes_count: likesCount || 0,
+            has_liked: hasLiked,
+        };
+    }));
+
+    // Build comment tree
+    const commentsById = new Map(commentsWithDetails.map(c => [c.id, { ...c, replies: [] }]));
     const rootComments = [];
 
     for (const comment of commentsById.values()) {
-      // Видаляємо поле, яке вже не потрібне в фінальному об'єкті
-      if (comment.author && comment.author.user_metadata) {
-          comment.author.username = comment.author.user_metadata.username;
-          delete comment.author.user_metadata;
-      }
-      
-      if (comment.parent_id && commentsById.has(comment.parent_id)) {
-        commentsById.get(comment.parent_id).replies.push(comment);
-      } else {
-        rootComments.push(comment);
-      }
+        if (comment.parent_id && commentsById.has(comment.parent_id)) {
+            commentsById.get(comment.parent_id).replies.push(comment);
+        } else {
+            rootComments.push(comment);
+        }
     }
 
     return jsonResponse(rootComments);

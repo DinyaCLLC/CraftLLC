@@ -11,111 +11,118 @@
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
     <style>
-        /* Загальні стилі */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #141414;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
             margin: 0;
-            background-color: #141414;
-            color: #f4f4f9;
-            line-height: 1.6;
         }
-
-        .container {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 0 20px;
+        button {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            width: 90%;
+            height: 45px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: black; /* Додано для видимості тексту на кнопці */
         }
-
-        /* Хедер */
-        header {
-            background: #161616;
-            border-bottom: 1px solid #333;
-            padding: 15px 0;
-            margin-bottom: 30px;
+        h1, h2 {
+            margin: 20px 0;
         }
-
-        header .container {
+        p {
+            margin: 10px 0;
+        }
+        a {
+            text-decoration: none;
+            color: white;
+        }
+        iframe {
+            width: 100%;
+            border: none;
+            min-height: 100px;
+            display: block;
+        }
+        /* Лоадер */
+        #loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #141414;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loader {
+            width: 50px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background:
+                radial-gradient(farthest-side,#ffa516 94%,#0000) top/8px 8px no-repeat,
+                conic-gradient(#0000 30%,#ffa516);
+            -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
+            animation: l13 1s infinite linear;
+        }
+        @keyframes l13 {
+            100% { transform: rotate(1turn) }
+        }
+        /* Стилі для хедера (Flexbox) */
+        header {
+            padding: 10px;
+            background-color: #161616;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between; /* Розносить лого і меню */
             align-items: center;
         }
 
-        .logo {
-            font-size: 1.5em;
-            font-weight: bold;
+        .logo-container img {
+            height: 40px; 
+            width: auto; 
+            display: block;
+        }
+
+        /* Стилі для горизонтальної навігаційної панелі на великих екранах */
+        .nav-menu ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex; /* Горизонтальне меню */
+            gap: 20px;
+        }
+
+        .nav-menu a {
+            color: white;
             text-decoration: none;
-            color: #f4f4f9;
+            padding: 5px 10px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .nav-menu a:hover {
+            color: #FFA600;
         }
         
-        nav a {
-            color: #f4f4f9;
-            text-decoration: none;
-            margin-left: 20px;
-        }
-
-        #auth-container .btn {
-            margin-left: 10px;
-            padding: 8px 12px;
-            text-decoration: none;
-            border: 1px solid #555;
-            border-radius: 5px;
-            font-size: 0.9em;
-            transition: background-color 0.2s;
-        }
-
-        #auth-container .btn-secondary {
-            background-color: #333;
-            color: #fff;
-        }
-        #auth-container .btn-secondary:hover {
-            background-color: #444;
-        }
-
-        #auth-container .btn-primary {
-            background-color: #FFA600;
-            color: #141414;
-            border-color: #FFA600;
-        }
-        #auth-container .btn-primary:hover {
-            background-color: #FFBB00;
-        }
-
-        #auth-container #profile-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #FFA600;
-            color: #141414;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        #auth-container #logout-btn {
+        /* Приховуємо кнопку гамбургера на великих екранах за замовчуванням */
+        .menu-toggle {
+            display: none; 
             background: none;
             border: none;
-            color: #dc3545;
+            color: white;
+            font-size: 24px;
             cursor: pointer;
-            margin-left: 15px;
-            font-size: 0.9em;
         }
-        
-        main {
-            text-align: center;
+        .menu-toggle i {
+            display: flex;
+            align-self: start;
         }
-        
-        iframe {
-            border: none;
-            width: 100%;
-            height: 500px; /* Приклад висоти */
-            margin-top: 20px;
-        }
-
         footer {
-            margin-top: 40px;
+            margin: 0;
             padding: 40px 0;
             background-color: #161616;
             box-sizing: border-box;
@@ -125,9 +132,9 @@
             text-align: center;
             padding-bottom: 25px;
             font-size: 24px;
+            text-decoration: none;
         }
         footer .social a {
-            color: #ccc;
             border: 1px solid #ccc;
             border-radius: 30%;
             width: 40px;
@@ -141,40 +148,518 @@
         footer .social a:hover {
             opacity: 1.0;
         }
+        footer .social .fa-telegram {
+            color: #29a0dc;
+        }
+        footer .social .fa-youtube {
+            color: #ff0000;
+        }
+        footer .social .fa-instagram {
+            color: #e1306c;
+        }
         footer .copyright {
             margin-top: 5px;
             text-align: center;
             font-size: 13px;
             color: #aaa;
         }
+
+        /* Стилі для авторизації */
+        .auth-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .auth-button {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            color: #212121;
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            text-decoration: none;
+            display: inline-block;
+            width: auto; /* Перевизначаємо ширину кнопки */
+            height: auto; /* Перевизначаємо висоту кнопки */
+        }
+        .register-button {
+            background: none;
+            border: 1px solid #212121;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            text-decoration: none;
+            display: inline-block;
+            width: auto;
+            height: auto;
+        }
+        .profile-info {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: white;
+        }
+        .profile-info .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background-color: #ffb700; /* Placeholder for avatar */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #212121;
+            overflow: hidden; /* Забезпечуємо, що зображення аватарки не виходить за межі круга */
+        }
+        .profile-info .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Зберігаємо пропорції та заповнюємо круг */
+        }
+        .profile-dropdown {
+            position: absolute;
+            top: 50px; /* Adjust as needed */
+            right: 0;
+            background-color: #212121;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            display: none; /* Hidden by default */
+            z-index: 1000;
+            text-align: left;
+        }
+        .profile-dropdown p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .profile-dropdown button {
+            width: 100%;
+            margin-top: 10px;
+            background: linear-gradient(to right, #FF4500, #FF6347); /* Logout button color */
+            color: white;
+        }
+        .profile-dropdown button.account-btn {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            color: #212121;
+        }
+
+        /* Styles for the cheat code modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 10000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #888;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-content input[type="text"] {
+            width: calc(100% - 20px); /* Adjust for padding */
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ffa516;
+            border-radius: 8px;
+            background-color: #333;
+            color: white;
+            font-size: 1em;
+        }
+
+        .modal-content button {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            width: auto; /* Allow button to size naturally */
+            margin: 0 5px; /* Spacing between buttons */
+        }
+
+        .modal-content button:hover {
+            opacity: 0.9;
+        }
+
+        .modal-message {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        /* Styles for the new active cheat codes modal */
+        .active-codes-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #222;
+        }
+        .active-code-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background-color: #333;
+            border-radius: 5px;
+            color: white;
+        }
+        .active-code-item:last-child {
+            margin-bottom: 0;
+        }
+        .active-code-item span {
+            flex-grow: 1;
+            text-align: left;
+            padding-left: 10px;
+        }
+        .active-code-item button {
+            width: auto;
+            padding: 5px 10px;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+        .nav-menu ul {
+            align-items: center;
+        }
+        .nav-menu .auth-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+        .nav-menu .auth-button, .nav-menu .register-button {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            color: #212121!important;
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            text-decoration: none;
+            display: inline-block;
+            width: auto;
+            height: auto;
+            font-weight: bold;
+        }
+        .nav-menu .register-button {
+            background: none;
+            border: 1px solid #FFA600;
+            color: white!important;
+        }
+        .profile-info {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: white;
+        }
+        .profile-info .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background-color: #ffb700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #212121;
+            overflow: hidden;
+        }
+        .profile-info .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: #212121;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+            text-align: left;
+            min-width: 180px;
+        }
+        .profile-dropdown p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .profile-dropdown button {
+            width: 100%;
+            margin-top: 10px;
+            background: linear-gradient(to right, #FF4500, #FF6347);
+            color: white;
+        }
+        .profile-dropdown button.account-btn {
+            background: linear-gradient(to right, #FFA600, #FFBB00);
+            color: #212121;
+        }
+
+        @media (max-width: 768px) {
+            /* Показуємо гамбургер-кнопку */
+            .menu-toggle {
+                display: block;
+            }
+
+            /* Приховуємо горизонтальне меню за замовчуванням */
+            .nav-menu {
+                display: none; 
+                position: absolute;
+                top: 60px; /* Висота хедера + невеликий відступ */
+                left: 0;
+                width: 100%;
+                background-color: #161616;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                z-index: 1000;
+                text-align: left;
+            }
+
+            /* Меню, коли воно активне (показується) */
+            .nav-menu.active {
+                display: block;
+            }
+            
+            /* Робимо список вертикальним */
+            .nav-menu ul {
+                flex-direction: column; 
+                padding: 10px 5%;
+                align-items: stretch;
+            }
+            
+            .nav-menu li {
+                margin: 0;
+            }
+            
+            /* Стилізуємо посилання як блок, щоб вони займали всю ширину */
+            .nav-menu a {
+                display: block;
+                padding: 10px 0;
+                border-bottom: 1px solid #222; 
+            }
+
+            /* Прибираємо нижню межу на останньому елементі */
+            .nav-menu li:last-child a {
+                border-bottom: none;
+            }
+
+            .nav-menu .auth-item {
+                margin-left: 0;
+                padding: 5px 0;
+                border-bottom: 1px solid #222;
+            }
+            .nav-menu li.auth-item:last-child {
+                border-bottom: none;
+            }
+            .nav-menu .auth-button, .nav-menu .register-button {
+                width: 100%;
+                box-sizing: border-box;
+                text-align: center;
+                padding: 12px 0;
+            }
+            .nav-menu .profile-info {
+                width: 100%;
+                box-sizing: border-box;
+                padding: 10px 0;
+            }
+            .profile-dropdown {
+                top: 100%;
+                left: 0;
+                right: 0;
+                width: auto;
+                position: static;
+                box-shadow: none;
+                background: transparent;
+                padding-left: 20px;
+            }
+        }
     </style>
+    <header>
+        <button class="menu-toggle" aria-label="Перемкнути навігаційну панель" aria-expanded="false">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="logo-container">
+            <a href="/">
+                <img src="/logo.png" id="header-logo" alt="Логотип CraftLLC">
+            </a>
+        </div>
+
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="/">Головна</a></li>
+                <li><a href="/contacts">Контакти</a></li>
+                <li><a href="/recipes">Рецепти</a></li>
+            </ul>
+        </nav>
+    </header>
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "86e4717144d44d26a30bb98452c1e06b"}'></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const loaderWrapper = document.getElementById('loader-wrapper');
+            if (loaderWrapper) {
+                loaderWrapper.style.display = 'none';
+            }
+        });
+
+        function adjustAllIframesHeight() {
+            const iframes = document.querySelectorAll("iframe");
+            iframes.forEach(iframe => {
+                try {
+                    if (iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.body) {
+                        const contentHeight = iframe.contentWindow.document.body.scrollHeight;
+                        if (contentHeight > 0) {
+                            iframe.style.height = (contentHeight + 20) + "px"; // Add a 20px buffer
+                        }
+                    }
+                } catch (e) {
+                    console.error("Не вдається отримати висоту вмісту через політику безпеки браузера або iframe ще не завантажився:", e);
+                }
+            });
+        }
+
+        window.addEventListener("load", () => {
+            adjustAllIframesHeight();
+            setInterval(adjustAllIframesHeight, 500);
+        });
+
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'openCheatCodeModal') {
+                const cheatCodeModal = document.getElementById('cheatCodeModal');
+                const cheatCodeInput = document.getElementById('cheatCodeInput');
+                const modalMessage = document.getElementById('modalMessage');
+                
+                cheatCodeInput.value = '';
+                modalMessage.textContent = '';
+                cheatCodeModal.style.display = 'flex';
+            }
+        });
+
+        function setSpecialDateAssets() {
+            const today = new Date();
+            const day = today.getDate();
+            const month = today.getMonth() + 1;
+
+            const favicon = document.querySelector('link[rel="icon"]');
+            const logo = document.getElementById('logo');
+
+            if (!favicon || !logo) return;
+
+            if (month === 1 && day === 1) {
+                favicon.href = '/favicon2.ico';
+                logo.src = '/logo2.png';
+            }
+            else if (month === 3 && day === 8) {
+                favicon.href = '/favicon.ico';
+                logo.src = '/logo3.png';
+            }
+            else if (month === 9 && day === 26) {
+                favicon.href = '/favicon_birthday.ico';
+                logo.src = '/logo_birthday.png';
+            }
+            else {
+                favicon.href = '/favicon.ico';
+                logo.src = '/logo.png';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", setSpecialDateAssets);
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // ЛОГІКА ДЛЯ АДАПТИВНОГО МЕНЮ
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+
+            if (menuToggle && navMenu) {
+                menuToggle.addEventListener('click', () => {
+                    const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true' || false;
+                    
+                    // Перемикаємо клас active для відображення меню
+                    navMenu.classList.toggle('active'); 
+                    
+                    // Оновлюємо атрибут для доступності
+                    menuToggle.setAttribute('aria-expanded', !isExpanded); 
+                });
+            }
+        });
+    </script>
+
 </head>
 <body>
     <noscript>
         <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #141414; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10001; text-align: center; padding: 20px;">
             <h1>JavaScript вимкнено</h1>
             <p>Цей сайт вимагає увімкненого JavaScript для коректної роботи.</p>
+            <p>Будь ласка, увімкніть JavaScript у налаштуваннях вашого браузера, щоб продовжити.</p>
         </div>
     </noscript>
+    
+    <div id="loader-wrapper">
+        <div class="loader"></div>
+    </div>
 
-    <header>
-        <div class="container">
-            <a href="/" class="logo">CraftLLC</a>
-            <nav>
-                 <a href="/contacts">Контакти</a>
-                 <a href="/recipes">Рецепти</a>
-            </nav>
-            <div id="auth-container"></div>
+    <!-- Cheat Code Modal -->
+    <div id="cheatCodeModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Введіть чит-код</h2>
+            <input type="text" id="cheatCodeInput" placeholder="Ваш чит-код">
+            <button id="submitCheatCode">Підтвердити</button>
+            <button id="cancelCheatCode">Скасувати</button>
+            <p id="modalMessage" class="modal-message"></p>
         </div>
-    </header>
+    </div>
 
-    <main class="container">
-        <h1>Головна</h1>
-        <h1>QR-код</h1>
-        <img src="/qr.png" alt="QR-код на цей сайт." width="256" height="256">
-        <iframe id="recipesIframe" src="/recipes?mainPageView=true" sandbox="allow-same-origin allow-scripts allow-popups" scrolling="no"></iframe>
-        <iframe src="/contacts?mainPageView=true" sandbox="allow-same-origin allow-scripts allow-popups" scrolling="no"></iframe>
-    </main>
+    <!-- Active Cheat Codes Modal -->
+    <div id="activeCheatCodesModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Активні чит-коди</h2>
+            <div id="activeCheatCodesList" class="active-codes-list">
+                <!-- Active cheat codes will be rendered here -->
+            </div>
+            <br>
+            <button id="addCheatCodeBtn">Додати чит-код</button>
+            <button id="closeActiveCheatCodesModal">Закрити</button>
+        </div>
+    </div>
+
+    <h1>Головна</h1>
+    <h1>QR-код</h1>
+    <img src="/qr.png" alt="QR-код на цей сайт." width="256" height="256">
+    <iframe id="recipesIframe" src="/recipes?mainPageView=true" sandbox="allow-same-origin allow-scripts allow-popups" scrolling="no"></iframe>
+    <iframe src="/contacts?mainPageView=true" sandbox="allow-same-origin allow-scripts allow-popups" scrolling="no"></iframe>
 
     <footer id="footerID">
         <div class="social">
@@ -188,52 +673,184 @@
         <p class="copyright">© Андрій Рудик 2024-2025</p>
     </footer>
 
-    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "86e4717144d44d26a30bb98452c1e06b"}'></script>
     <script>
-        // --- Вбудована логіка автентифікації ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const authContainer = document.getElementById('auth-container');
-
-            const checkLoginStatus = async () => {
-                try {
-                    const response = await fetch('/api/me');
-                    if (response.ok) {
-                        const user = await response.json();
-                        renderLoggedIn(user);
-                    } else {
-                        renderLoggedOut();
-                    }
-                } catch (error) {
-                    console.error('Error checking login status:', error);
-                    renderLoggedOut();
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'openCheatCodeModal') {
+                const cheatCodeModal = document.getElementById('cheatCodeModal');
+                const cheatCodeInput = document.getElementById('cheatCodeInput');
+                const modalMessage = document.getElementById('modalMessage');
+                
+                cheatCodeInput.value = '';
+                modalMessage.textContent = '';
+                cheatCodeModal.style.display = 'flex';
+            } else if (event.data.type === 'CHEAT_CODE_RESULT') {
+                const cheatCodeModal = document.getElementById('cheatCodeModal');
+                const modalMessage = document.getElementById('modalMessage');
+                if (event.data.success) {
+                    modalMessage.style.color = 'green';
+                    modalMessage.textContent = 'Чит-код прийнято! Рецепт розблоковано.';
+                    setTimeout(() => {
+                        cheatCodeModal.style.display = 'none';
+                    }, 1500);
+                } else {
+                    modalMessage.style.color = 'red';
+                    modalMessage.textContent = 'Невірний чит-код або рецепт вже доступний.';
                 }
-            };
-
-            const renderLoggedOut = () => {
-                if (!authContainer) return;
-                authContainer.innerHTML = `
-                    <a href="/register/" class="btn btn-secondary">Реєстрація</a>
-                    <a href="/login/" class="btn btn-primary">Вхід</a>
-                `;
-            };
-
-            const renderLoggedIn = (user) => {
-                if (!authContainer) return;
-                const initial = user.username.charAt(0).toUpperCase();
-                authContainer.innerHTML = `
-                    <a href="/account/" id="profile-icon" title="Мій акаунт">${initial}</a>
-                    <button id="logout-btn" title="Вийти">Вийти</button>
-                `;
-                document.getElementById('logout-btn').addEventListener('click', handleLogout);
-            };
-
-            const handleLogout = async () => {
-                await fetch('/api/logout', { method: 'POST' });
-                window.location.href = '/';
-            };
-
-            checkLoginStatus();
+            }
         });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const cheatCodeModal = document.getElementById('cheatCodeModal');
+            const cancelCheatCodeBtn = document.getElementById('cancelCheatCode');
+            const submitCheatCodeBtn = document.getElementById('submitCheatCode');
+            const cheatCodeInput = document.getElementById('cheatCodeInput');
+            const modalMessage = document.getElementById('modalMessage');
+            const recipesIframe = document.getElementById('recipesIframe');
+
+            cancelCheatCodeBtn.addEventListener('click', () => {
+                cheatCodeModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target == cheatCodeModal) {
+                    cheatCodeModal.style.display = 'none';
+                }
+            });
+
+            submitCheatCodeBtn.addEventListener('click', () => {
+                const enteredCode = cheatCodeInput.value.trim().toLowerCase();
+                if (recipesIframe && recipesIframe.contentWindow) {
+                    recipesIframe.contentWindow.postMessage({ type: 'SUBMIT_CHEAT_CODE', code: enteredCode }, '*');
+                }
+            });
+        });
+
+        // Функція для перевірки сесії користувача
+        async function checkUserSession() {
+            const navList = document.querySelector('.nav-menu ul');
+            if (!navList) return;
+
+            // Remove existing auth items
+            navList.querySelectorAll('.auth-item').forEach(item => item.remove());
+
+            try {
+                const response = await fetch('/api/me');
+                if (response.ok) {
+                    const userData = await response.json();
+                    if (userData && userData.username) {
+                        // Користувач авторизований
+                        const profileLi = document.createElement('li');
+                        profileLi.className = 'auth-item';
+                        
+                        const profileInfoDiv = document.createElement('div');
+                        profileInfoDiv.className = 'profile-info';
+                        profileInfoDiv.onclick = toggleProfileDropdown;
+
+                        const avatarDiv = document.createElement('div');
+                        avatarDiv.className = 'avatar';
+                        if (userData.avatar_url) {
+                            const avatarImg = document.createElement('img');
+                            avatarImg.src = userData.avatar_url;
+                            avatarImg.alt = 'User Avatar';
+                            avatarDiv.appendChild(avatarImg);
+                        } else {
+                            avatarDiv.textContent = userData.username.charAt(0).toUpperCase();
+                        }
+                        profileInfoDiv.appendChild(avatarDiv);
+
+                        const usernameSpan = document.createElement('span');
+                        usernameSpan.textContent = userData.username;
+                        profileInfoDiv.appendChild(usernameSpan);
+                        
+                        profileLi.appendChild(profileInfoDiv);
+
+                        const profileDropdownDiv = document.createElement('div');
+                        profileDropdownDiv.className = 'profile-dropdown';
+                        profileDropdownDiv.id = 'profileDropdown';
+
+                        const nameP = document.createElement('p');
+                        nameP.textContent = `Ім'я: ${userData.username}`;
+                        profileDropdownDiv.appendChild(nameP);
+
+                        const accountButton = document.createElement('button');
+                        accountButton.className = 'auth-button account-btn';
+                        accountButton.textContent = 'Мій акаунт';
+                        accountButton.onclick = () => window.location.href = '/account';
+                        profileDropdownDiv.appendChild(accountButton);
+
+                        const logoutButton = document.createElement('button');
+                        logoutButton.textContent = 'Вийти';
+                        logoutButton.onclick = logoutUser;
+                        profileDropdownDiv.appendChild(logoutButton);
+
+                        profileLi.appendChild(profileDropdownDiv);
+                        navList.appendChild(profileLi);
+                    } else {
+                        renderAuthButtons();
+                    }
+                } else {
+                    renderAuthButtons();
+                }
+            } catch (error) {
+                console.error('Помилка перевірки сесії:', error);
+                renderAuthButtons();
+            }
+        }
+
+        // Функція для відображення кнопок "Увійти" та "Зареєструватися"
+        function renderAuthButtons() {
+            const navList = document.querySelector('.nav-menu ul');
+            if (!navList) return;
+            
+            const loginLi = document.createElement('li');
+            loginLi.className = 'auth-item';
+            loginLi.innerHTML = `<a href="/login" class="auth-button">Увійти</a>`;
+            navList.appendChild(loginLi);
+
+            const registerLi = document.createElement('li');
+            registerLi.className = 'auth-item';
+            registerLi.innerHTML = `<a href="/register" class="register-button">Зареєструватися</a>`;
+            navList.appendChild(registerLi);
+        }
+
+        // Функція для перемикання випадаючого меню профілю
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+
+        // Обробник кліку поза випадаючим меню для його закриття
+        document.addEventListener('click', (event) => {
+            const profileInfo = document.querySelector('.profile-info');
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown && profileInfo && !profileInfo.contains(event.target) && !event.target.matches('.profile-info, .profile-info *')) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Функція для виходу користувача
+        async function logoutUser() {
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Помилка при виході. Спробуйте ще раз.');
+                }
+            } catch (error) {
+                console.error('Помилка мережі при виході:', error);
+                alert('Помилка мережі при виході. Перевірте з\'єднання.');
+            }
+        }
+
+        // Викликаємо функцію перевірки сесії при завантаженні сторінки
+        document.addEventListener('DOMContentLoaded', checkUserSession);
     </script>
 </body>
 </html>
