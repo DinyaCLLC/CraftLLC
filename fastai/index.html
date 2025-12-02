@@ -233,6 +233,7 @@
             line-height: 1.5;
             font-size: 16px;
             color: #e0e0e0;
+            flex: 1;
         }
 
         .response-placeholder {
@@ -335,6 +336,18 @@
 
         footer .social a:hover {
             opacity: 1.0;
+        }
+
+        footer .social .fa-telegram {
+            color: #29a0dc;
+        }
+
+        footer .social .fa-youtube {
+            color: #ff0000;
+        }
+
+        footer .social .fa-instagram {
+            color: #e1306c;
         }
 
         footer .copyright {
@@ -552,7 +565,7 @@
                 if (!query) return;
 
                 const apiKey = localStorage.getItem('gemini_api_key');
-                const model = localStorage.getItem('gemini_model') || 'gemini-1.5-flash-latest';
+                const model = localStorage.getItem('gemini_model') || 'gemini-flash-latest';
                 const isShortAnswer = shortAnswerToggle.checked;
 
                 if (!apiKey) {
@@ -563,6 +576,8 @@
 
                 // UI Loading State
                 responseArea.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Думаю...';
+                responseArea.style.fontSize = '16px'; // Reset font size
+                responseArea.style.textAlign = 'left';
                 sendBtn.disabled = true;
 
                 try {
@@ -597,6 +612,29 @@
 
                     const aiText = data.candidates[0].content.parts[0].text;
                     responseArea.textContent = aiText;
+
+                    // Dynamic font size logic
+                    const length = aiText.length;
+                    if (length < 50) {
+                        responseArea.style.fontSize = '32px';
+                        responseArea.style.textAlign = 'center';
+                        responseArea.style.justifyContent = 'center';
+                        responseArea.style.display = 'flex';
+                        responseArea.style.alignItems = 'center';
+                        responseArea.style.height = '100%';
+                    } else if (length < 100) {
+                        responseArea.style.fontSize = '24px';
+                        responseArea.style.textAlign = 'center';
+                        responseArea.style.display = 'block';
+                    } else if (length < 200) {
+                        responseArea.style.fontSize = '20px';
+                        responseArea.style.textAlign = 'left';
+                        responseArea.style.display = 'block';
+                    } else {
+                        responseArea.style.fontSize = '16px';
+                        responseArea.style.textAlign = 'left';
+                        responseArea.style.display = 'block';
+                    }
 
                 } catch (error) {
                     console.error(error);
