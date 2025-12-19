@@ -469,7 +469,7 @@
                 <li><a href="/">Головна</a></li>
                 <li><a href="/contacts">Контакти</a></li>
                 <li><a href="/recipes">Рецепти</a></li>
-                <li><a href="/fastai">FastAI</a></li>
+                <li><a href="/craftai">CraftAI</a></li>
             </ul>
         </nav>
     </header>
@@ -536,6 +536,7 @@
         });
     </script>
 
+    <script src="/snow.js" defer></script>
 </head>
 
 <body>
@@ -579,9 +580,9 @@
     <h1>Головна</h1>
     <h1>QR-код</h1>
     <img src="/qr.png" alt="QR-код на цей сайт." width="256" height="256">
-    <iframe id="recipesIframe" src="/recipes?mainPageView=true" sandbox="allow-same-origin allow-scripts allow-popups"
+    <iframe id="recipesIframe" src="/recipes?mainPageView=true&noSnow=true" sandbox="allow-same-origin allow-scripts allow-popups"
         scrolling="no"></iframe>
-    <iframe src="/contacts?mainPageView=true" sandbox="allow-same-origin allow-scripts allow-popups"
+    <iframe src="/contacts?mainPageView=true&noSnow=true" sandbox="allow-same-origin allow-scripts allow-popups"
         scrolling="no"></iframe>
 
     <footer id="footerID">

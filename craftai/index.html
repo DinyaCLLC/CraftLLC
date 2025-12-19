@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="FastAI - швидкий доступ до штучного інтелекту Gemini на сайті CraftLLC.">
-    <meta name="keywords" content="CraftLLC, FastAI, Gemini, AI, ШІ, Чат">
+    <meta name="description" content="CraftAI - швидкий доступ до штучного інтелекту Gemini на сайті CraftLLC.">
+    <meta name="keywords" content="CraftLLC, CraftAI, Gemini, AI, ШІ, Чат">
     <meta name="robots" content="index, follow">
-    <title>FastAI — CraftLLC</title>
+    <title>CraftAI — CraftLLC</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
     <style>
@@ -73,7 +73,7 @@
             align-self: start;
         }
 
-        /* FastAI Specific Styles */
+        /* CraftAI Specific Styles */
         .main-content {
             flex: 1;
             padding: 20px;
@@ -390,6 +390,7 @@
             }
         }
     </style>
+    <script src="/snow.js" defer></script>
 </head>
 
 <body>
@@ -410,13 +411,13 @@
                 <li><a href="/">Головна</a></li>
                 <li><a href="/contacts">Контакти</a></li>
                 <li><a href="/recipes">Рецепти</a></li>
-                <li><a href="/fastai">FastAI</a></li>
+                <li><a href="/craftai">CraftAI</a></li>
             </ul>
         </nav>
     </header>
 
     <div class="main-content">
-        <h1>FastAI</h1>
+        <h1>CraftAI</h1>
 
         <div class="controls">
             <div class="toggle-container">
@@ -486,6 +487,32 @@
     </footer>
 
     <script>
+        // CraftAI Toolset
+        const CraftAI = {
+            getRandomNumber: (min, max) => {
+                if (min === undefined || max === undefined) {
+                    return "Будь ласка, вкажіть мінімальне та максимальне значення.";
+                }
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+            getCurrentTime: (timeZone = 'Europe/Kyiv') => {
+                try {
+                    const now = new Date();
+                    return new Intl.DateTimeFormat('uk-UA', {
+                        timeZone: timeZone,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    }).format(now);
+                } catch (e) {
+                    return `Помилка: Неправильний часовий пояс '${timeZone}'.`;
+                }
+            }
+        };
+
         document.addEventListener("DOMContentLoaded", () => {
             // Navigation Toggle
             const menuToggle = document.querySelector('.menu-toggle');
