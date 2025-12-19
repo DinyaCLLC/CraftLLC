@@ -41,7 +41,6 @@ function createSnowflake(container) {
 
     const snowflake = document.createElement('div');
     snowflake.innerHTML = '❄';
-    snowflake.style.color = 'white';
     snowflake.style.userSelect = 'none';
     snowflake.style.fontSize = `${size}px`;
     
