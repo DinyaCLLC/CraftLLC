@@ -18,6 +18,7 @@
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
+            padding-top: 70px;
         }
 
         button {
@@ -94,6 +95,10 @@
             justify-content: space-between;
             /* Розносить лого і меню */
             align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
 
         .logo-container img {
@@ -580,8 +585,8 @@
     <h1>Головна</h1>
     <h1>QR-код</h1>
     <img src="/qr.png" alt="QR-код на цей сайт." width="256" height="256">
-    <iframe id="recipesIframe" src="/recipes?mainPageView=true&noSnow=true" sandbox="allow-same-origin allow-scripts allow-popups"
-        scrolling="no"></iframe>
+    <iframe id="recipesIframe" src="/recipes?mainPageView=true&noSnow=true"
+        sandbox="allow-same-origin allow-scripts allow-popups" scrolling="no"></iframe>
     <iframe src="/contacts?mainPageView=true&noSnow=true" sandbox="allow-same-origin allow-scripts allow-popups"
         scrolling="no"></iframe>
 
