@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
+    return;
+    
     const urlParams = new URLSearchParams(window.location.search);
     const noSnow = urlParams.get('noSnow') === 'true';
 
