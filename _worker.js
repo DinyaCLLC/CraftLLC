@@ -12,7 +12,7 @@ export default {
         if (!response.ok) throw new Error("Failed to fetch");
         
         const recipes = await response.json();
-        const latestRecipe = recipes.at(-1); 
+        const latestRecipe = recipes[0]; 
         const showBadge = url.searchParams.get("badge") === "true";
 
         if (showBadge) {
