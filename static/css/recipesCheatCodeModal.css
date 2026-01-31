@@ -1,0 +1,111 @@
+
+/* Styles for the cheat code modal */
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 10000;
+    /* Sit on top */
+    left: 0;
+    top: 0;
+    /* Full width */
+    width: 100%;
+    /* Full height */
+    height: 100%;
+    /* Enable scroll if needed */
+    overflow: auto;
+    /* Black w/ opacity */
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: #1e1e1e;
+    margin: auto;
+    padding: 30px;
+    border: 1px solid #888;
+    border-radius: 15px;
+    width: 80%;
+    max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    position: relative;
+}
+
+.modal-content input[type="text"] {
+    width: calc(100% - 20px);
+    /* Adjust for padding */
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ffa516;
+    border-radius: 8px;
+    background-color: #333;
+    color: white;
+    font-size: 1em;
+}
+
+.modal-content button {
+    background: linear-gradient(to right, #FFA600, #FFBB00);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    width: auto;
+    /* Allow button to size naturally */
+    margin: 0 5px;
+    /* Spacing between buttons */
+}
+
+.modal-content button:hover {
+    opacity: 0.9;
+}
+
+.modal-message {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+/* Styles for the new active cheat codes modal */
+.active-codes-list {
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background-color: #222;
+}
+
+.active-code-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+    background-color: #333;
+    border-radius: 5px;
+    color: white;
+}
+
+.active-code-item:last-child {
+    margin-bottom: 0;
+}
+
+.active-code-item span {
+    flex-grow: 1;
+    text-align: left;
+    padding-left: 10px;
+}
+
+.active-code-item button {
+    width: auto;
+    padding: 5px 10px;
+    margin-left: 10px;
+    font-size: 0.9em;
+}

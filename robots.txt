@@ -2,7 +2,6 @@ User-agent: *
 Allow: /
 Allow: /contacts
 Allow: /recipes
-Allow: /craftantivirus
-Allow: /fastai
+Disallow: /craftantivirus
 Disallow: /.well-known/*
 Disallow: /5d9dc8a43a7545e894c739f97f7007a2.txt
