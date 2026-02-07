@@ -3,8 +3,16 @@ let filteredCards = [];
 const recipesPerPage = 5;
 let countdownIntervals = {};
 let cheatCodesUsed = JSON.parse(localStorage.getItem('cheatCodesUsed')) || {};
+let currentUserData = null;
 
 // --- Interactions Logic ---
+
+async function fetchUserRole() {
+    try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) currentUserData = await res.json();
+    } catch (e) {}
+}
 
 async function fetchInteractionData(recipeId) {
     try {
@@ -51,16 +59,6 @@ async function handleCommentSubmit(recipeId, input, container) {
     } catch (e) {
         alert(e.message);
     }
-}
-
-// Global user data for role checks
-let currentUserData = null;
-
-async function fetchUserRole() {
-    try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) currentUserData = await res.json();
-    } catch (e) {}
 }
 
 function renderComment(comment, container, recipeId) {
@@ -117,15 +115,7 @@ window.interactComment = async function(recipeId, commentId, action, btn) {
         });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
-        
-        if (action === 'like') {
-            const count = btn.querySelector('.c-like-count');
-            count.textContent = parseInt(count.textContent) + (data.liked ? 1 : -1); 
-            // Correct logic would be to reload or use data returning from API
-            location.reload(); // Simple for now
-        } else {
-            location.reload();
-        }
+        location.reload();
     } catch (e) {
         alert(e.message);
     }
@@ -222,6 +212,8 @@ function updatePaginationControls() {
     const next = document.getElementById('next-page');
     if (prev) prev.disabled = currentPage === 1;
     if (next) next.disabled = currentPage === totalPages || totalPages === 0;
+    const resultsCount = document.getElementById('searchResultsCount');
+    if (resultsCount) resultsCount.textContent = `Знайдено рецептів: ${filteredCards.length}`;
 }
 
 function filterAndSortRecipes() {
@@ -233,7 +225,12 @@ function filterAndSortRecipes() {
         const matchesType = selectedType === 'all' || card.dataset.recipetype === selectedType;
         if (!matchesType) return false;
         if (!searchTerm) return true;
-        const text = normalizeText(card.querySelector('.card__title').textContent + (card.dataset.tags || ''));
+        
+        const title = card.querySelector('.card__title').textContent;
+        const tags = card.dataset.tags || '';
+        const desc = card.querySelector('.card__desc').textContent;
+        const text = normalizeText(`${title} ${tags} ${desc}`);
+        
         return text.includes(searchTerm) || levenshtein(searchTerm, text) < 3;
     });
 
@@ -247,30 +244,43 @@ function processRecipeCards() {
         const dateAttr = card.dataset.date;
         const cardId = `card-${index}`;
         if (countdownIntervals[cardId]) clearInterval(countdownIntervals[cardId]);
-        if (dateAttr && !cheatCodesUsed[cardId]) {
+        
+        const isCheatActive = cheatCodesUsed[cardId] === true;
+
+        if (dateAttr) {
             const [d, m, y] = dateAttr.split('.').map(Number);
             const release = new Date(y, m - 1, d);
-            if (release > now) {
-                const title = card.querySelector('.card__title');
-                if (title) {
-                    title.dataset.origText = title.textContent;
+            const title = card.querySelector('.card__title');
+            const desc = card.querySelector('.card__desc');
+            const interactions = card.querySelector('.recipe-interactions');
+            const video = card.querySelector('.card__vid-placeholder, video, iframe');
+
+            if (!title.dataset.origText) title.dataset.origText = title.textContent;
+            if (!title.dataset.origHref) title.dataset.origHref = title.getAttribute('href');
+            if (!desc.dataset.origHtml) desc.dataset.origHtml = desc.innerHTML;
+
+            const update = () => {
+                const diff = release - new Date();
+                if (diff > 0 && !isCheatActive) {
+                    if (video) video.style.display = 'none';
+                    if (interactions) interactions.style.display = 'none';
                     title.textContent = "Секрет";
                     title.style.pointerEvents = "none";
+                    title.removeAttribute('href');
+                    desc.innerHTML = `Доступно через: ${formatCountdown(diff)}`;
+                } else {
+                    if (video) video.style.display = 'block';
+                    if (interactions) interactions.style.display = 'flex';
+                    title.textContent = title.dataset.origText;
+                    title.setAttribute('href', title.dataset.origHref);
+                    title.style.pointerEvents = "auto";
+                    desc.innerHTML = desc.dataset.origHtml;
+                    clearInterval(countdownIntervals[cardId]);
                 }
-                const desc = card.querySelector('.card__desc');
-                if (desc) {
-                    desc.dataset.origHtml = desc.innerHTML;
-                    const update = () => {
-                        const diff = release - new Date();
-                        if (diff <= 0) {
-                            location.reload();
-                        } else {
-                            desc.innerHTML = `Доступно через: ${formatCountdown(diff)}`;
-                        }
-                    };
-                    update();
-                    countdownIntervals[cardId] = setInterval(update, 1000);
-                }
+            };
+            update();
+            if (release > now && !isCheatActive) {
+                countdownIntervals[cardId] = setInterval(update, 1000);
             }
         }
     });
@@ -284,18 +294,39 @@ function generateRecipeCard(recipe, index) {
     card.dataset.recipetype = recipe.recipe_type;
     card.dataset.tags = recipe.keywords.join(', ');
     if (recipe.date) card.dataset.date = recipe.date;
+    if (recipe.cheat_code) card.dataset.cheatcode = recipe.cheat_code;
 
     let videoElement = '';
     if (recipe.video_id) {
         videoElement = `<div class="card__vid-placeholder" data-videoid="${recipe.video_id}">
-            <iframe width="100%" height="200" src="https://www.youtube.com/embed/${recipe.video_id}" frameborder="0" allowfullscreen></iframe>
+             <iframe width="100%" height="240" src="https://www.youtube.com/embed/${recipe.video_id}" frameborder="0" allowfullscreen></iframe>
         </div>`;
+    } else if (recipe.video_src) {
+        videoElement = `<video class="card__vid" src="${recipe.video_src}" controls></video>`;
+    }
+
+    let ingredientsHtml = '';
+    if (recipe.ingredients) {
+        recipe.ingredients.forEach(group => {
+            ingredientsHtml += group._name ? `<br><strong>Інгредієнти (${group._name}):</strong><br>` : '<br><strong>Інгредієнти:</strong><br>';
+            for (const [name, amount] of Object.entries(group)) {
+                if (name !== '_name') ingredientsHtml += `${name} - ${amount || ''}<br>`;
+            }
+        });
+    }
+
+    let propertiesHtml = '';
+    if (recipe.properties) {
+        propertiesHtml += '<br><strong>Властивості:</strong><br>';
+        if (recipe.properties.temperature) propertiesHtml += `Температура: ${recipe.properties.temperature}°C<br>`;
+        if (recipe.properties.time) propertiesHtml += `Час: ${recipe.properties.time}<br>`;
+        if (recipe.properties.mdiam) propertiesHtml += `Діаметр: ${recipe.properties.mdiam}<br>`;
     }
 
     card.innerHTML = `
     ${videoElement}
     <div class="card__body">
-        <a href="#" class="card__title">${recipe.name}</a>
+        <a href="${recipe.video_id ? `https://youtube.com/watch?v=${recipe.video_id}` : '#'}" class="card__title" target="_blank">${recipe.name}</a>
         <div class="recipe-interactions">
             <button class="like-btn" onclick="toggleLike('${recipeId}', this)">
                 <i class="fas fa-heart"></i> <span class="like-count">0</span>
@@ -304,7 +335,11 @@ function generateRecipeCard(recipe, index) {
                 <i class="fas fa-comment"></i> <span class="comment-count">0</span>
             </button>
         </div>
-        <p class="card__desc">${recipe.description || ''}</p>
+        <div class="card__desc">
+            ${recipe.description || ''}
+            ${propertiesHtml}
+            ${ingredientsHtml}
+        </div>
         
         <div class="comments-section hidden">
             <div class="add-comment">
@@ -349,7 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const code = document.getElementById('cheatCodeInput').value.trim();
             if (!code) return;
 
-            // 1. Try Admin API
+            // Try Admin API
             try {
                 const res = await fetch('/api/auth/admin-cheat', {
                     method: 'POST',
@@ -357,7 +392,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     body: JSON.stringify({ code })
                 });
                 const data = await res.json();
-                
                 if (data.success) {
                     const msg = document.getElementById('modalMessage');
                     msg.style.color = 'green';
@@ -365,11 +399,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     setTimeout(() => location.reload(), 1500);
                     return;
                 }
-            } catch (e) {
-                console.error("Admin check failed", e);
-            }
+            } catch (e) {}
 
-            // 2. Try Recipe Unlock
+            // Try Recipe Unlock
             let found = false;
             document.querySelectorAll('.card').forEach((card, index) => {
                 if (card.dataset.cheatcode && card.dataset.cheatcode.toLowerCase() === code.toLowerCase()) {
@@ -380,10 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (found) {
                 localStorage.setItem('cheatCodesUsed', JSON.stringify(cheatCodesUsed));
-                const msg = document.getElementById('modalMessage');
-                msg.style.color = 'green';
-                msg.textContent = 'Чит-код прийнято!';
-                setTimeout(() => location.reload(), 800);
+                location.reload();
             } else {
                 const msg = document.getElementById('modalMessage');
                 msg.style.color = 'red';
@@ -405,13 +434,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const sort = document.getElementById('recipeSort');
     if (sort) sort.addEventListener('change', filterAndSortRecipes);
 
-    fetchUserRole().then(() => {
-        loadRecipes();
-    });
+    fetchUserRole().then(() => loadRecipes());
 });
 
 window.addEventListener("load", () => {
     const loader = document.getElementById('loader-wrapper');
     if (loader) loader.style.display = 'none';
 });
-
