@@ -135,71 +135,161 @@ export default {
       return new Response(JSON.stringify(userData), { headers: { "Content-Type": "application/json" } });
     }
 
-    // 4. Logout
-    if (cleanPath === "api/auth/logout" && request.method === "POST") {
-      const token = getCookie(request, COOKIE_NAME);
-      if (token) await env.DB.delete(`session:${token}`);
+    // --- API: Interactions ---
+
+    // 1. Get Interaction Data
+    if (cleanPath === "api/recipes/data" && request.method === "GET") {
+      const id = url.searchParams.get("id");
+      if (!id) return new Response("Missing id", { status: 400 });
+
+      const likes = JSON.parse(await env.DB.get(`likes:recipe:${id}`) || "[]");
+      const comments = JSON.parse(await env.DB.get(`comments:recipe:${id}`) || "[]");
+
+      return new Response(JSON.stringify({
+        likesCount: likes.length,
+        liked: false, // Will be checked client-side or if token provided
+        comments: comments
+      }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
+    // AUTH REQUIRED BELOW
+    const token = getCookie(request, COOKIE_NAME);
+    const currentUser = token ? await env.DB.get(`session:${token}`) : null;
+    let userData = null;
+    if (currentUser) {
+      const userDataStr = await env.DB.get(`user:${currentUser}`);
+      if (userDataStr) userData = JSON.parse(userDataStr);
+    }
+
+    // 2. Like Recipe
+    if (cleanPath === "api/recipes/like" && request.method === "POST") {
+      if (!userData) return new Response(JSON.stringify({ error: "Авторизуйтесь" }), { status: 401 });
+      const { id } = await request.json();
+      const key = `likes:recipe:${id}`;
+      let likes = JSON.parse(await env.DB.get(key) || "[]");
       
-      return new Response(JSON.stringify({ success: true }), {
-        headers: {
-          "Content-Type": "application/json",
-          "Set-Cookie": `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
-        }
-      });
+      const index = likes.indexOf(userData.username);
+      if (index === -1) {
+        likes.push(userData.username);
+      } else {
+        likes.splice(index, 1);
+      }
+      
+      await env.DB.put(key, JSON.stringify(likes));
+      return new Response(JSON.stringify({ success: true, count: likes.length }));
     }
 
-    // 5. Update Profile
-    if (cleanPath === "api/auth/update" && request.method === "POST") {
-      const token = getCookie(request, COOKIE_NAME);
-      if (!token) return new Response(JSON.stringify({ error: "Неавторизовано" }), { status: 401 });
+    // 3. Post Comment
+    if (cleanPath === "api/recipes/comment" && request.method === "POST") {
+      if (!userData) return new Response(JSON.stringify({ error: "Авторизуйтесь" }), { status: 401 });
+      const { id, content } = await request.json();
+      if (!content) return new Response("Content missing", { status: 400 });
 
-      const username = await env.DB.get(`session:${token}`);
-      if (!username) return new Response(JSON.stringify({ error: "Сесія закінчилася" }), { status: 401 });
-
-      const { nickname, currentPassword, newPassword } = await request.json();
-      const userDataStr = await env.DB.get(`user:${username}`);
-      const userData = JSON.parse(userDataStr);
-
-      // Verify current password if changing password or nickname
-      const currentPasswordHash = await hashPassword(currentPassword);
-      if (userData.passwordHash !== currentPasswordHash) {
-        return new Response(JSON.stringify({ error: "Невірний поточний пароль" }), { status: 401 });
-      }
-
-      if (nickname) userData.nickname = nickname;
-      if (newPassword) userData.passwordHash = await hashPassword(newPassword);
-
-      await env.DB.put(`user:${username}`, JSON.stringify(userData));
-
-      return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+      const key = `comments:recipe:${id}`;
+      let comments = JSON.parse(await env.DB.get(key) || "[]");
+      
+      const newComment = {
+        id: crypto.randomUUID(),
+        username: userData.username,
+        nickname: userData.nickname,
+        content,
+        timestamp: new Date().toISOString(),
+        likes: [],
+        hearts: [],
+        replies: []
+      };
+      
+      comments.unshift(newComment); // Newest first
+      await env.DB.put(key, JSON.stringify(comments));
+      return new Response(JSON.stringify(newComment));
     }
 
-    // 6. Delete Account
-    if (cleanPath === "api/auth/delete" && request.method === "POST") {
-      const token = getCookie(request, COOKIE_NAME);
-      if (!token) return new Response(JSON.stringify({ error: "Неавторизовано" }), { status: 401 });
+    // 4. Like/Heart Comment
+    if (cleanPath === "api/comments/interact" && request.method === "POST") {
+      if (!userData) return new Response(JSON.stringify({ error: "Авторизуйтесь" }), { status: 401 });
+      const { recipeId, commentId, action } = await request.json(); // action: 'like' or 'heart'
+      
+      const key = `comments:recipe:${recipeId}`;
+      let comments = JSON.parse(await env.DB.get(key) || "[]");
+      const comment = comments.find(c => c.id === commentId);
+      
+      if (!comment) return new Response("Comment not found", { status: 404 });
 
-      const username = await env.DB.get(`session:${token}`);
-      if (!username) return new Response(JSON.stringify({ error: "Сесія закінчилася" }), { status: 401 });
-
-      const { password } = await request.json();
-      const userDataStr = await env.DB.get(`user:${username}`);
-      const userData = JSON.parse(userDataStr);
-
-      const passwordHash = await hashPassword(password);
-      if (userData.passwordHash !== passwordHash) {
-        return new Response(JSON.stringify({ error: "Невірний пароль" }), { status: 401 });
+      if (action === 'like') {
+        const idx = comment.likes.indexOf(userData.username);
+        if (idx === -1) comment.likes.push(userData.username);
+        else comment.likes.splice(idx, 1);
+      } else if (action === 'heart') {
+        const canHeart = userData.role === 'admin' || userData.role === 'responder';
+        if (!canHeart) return new Response("No permission", { status: 403 });
+        
+        const idx = comment.hearts.indexOf(userData.username);
+        if (idx === -1) comment.hearts.push(userData.username);
+        else comment.hearts.splice(idx, 1);
       }
 
-      await env.DB.delete(`user:${username}`);
-      await env.DB.delete(`session:${token}`);
+      await env.DB.put(key, JSON.stringify(comments));
+      return new Response(JSON.stringify({ success: true }));
+    }
 
-      return new Response(JSON.stringify({ success: true }), {
-        headers: {
-          "Content-Type": "application/json",
-          "Set-Cookie": `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
-        }
-      });
+    // 5. Reply to Comment
+    if (cleanPath === "api/comments/reply" && request.method === "POST") {
+      if (!userData) return new Response(JSON.stringify({ error: "Авторизуйтесь" }), { status: 401 });
+      const { recipeId, commentId, content } = await request.json();
+      
+      const key = `comments:recipe:${recipeId}`;
+      let comments = JSON.parse(await env.DB.get(key) || "[]");
+      const comment = comments.find(c => c.id === commentId);
+      
+      if (!comment) return new Response("Comment not found", { status: 404 });
+
+      // Check permissions: Admin, Responder, or Author
+      const isAuthor = comment.username === userData.username;
+      const isAdmin = userData.role === 'admin' || userData.role === 'responder';
+      
+      if (!isAuthor && !isAdmin) {
+        return new Response(JSON.stringify({ error: "Тільки автор або адмін можуть відповідати" }), { status: 403 });
+      }
+
+      const reply = {
+        id: crypto.randomUUID(),
+        username: userData.username,
+        nickname: userData.nickname,
+        content,
+        timestamp: new Date().toISOString(),
+        hearts: []
+      };
+
+      comment.replies.push(reply);
+      await env.DB.put(key, JSON.stringify(comments));
+      return new Response(JSON.stringify(reply));
+    }
+
+    // 6. Admin: Grant Admin Status
+    if (cleanPath === "api/auth/admin-cheat" && request.method === "POST") {
+      if (!userData) return new Response(JSON.stringify({ error: "Авторизуйтесь" }), { status: 401 });
+      const { code } = await request.json();
+      if (env.ADMIN_CODE && code === env.ADMIN_CODE) {
+        userData.role = 'admin';
+        await env.DB.put(`user:${userData.username}`, JSON.stringify(userData));
+        return new Response(JSON.stringify({ success: true, message: "Ви тепер АДМІН!" }));
+      }
+      return new Response(JSON.stringify({ error: "Невірний код" }), { status: 400 });
+    }
+
+    // 7. Admin: Change User Role
+    if (cleanPath === "api/admin/role" && request.method === "POST") {
+      if (userData?.role !== 'admin') return new Response("No permission", { status: 403 });
+      const { targetUsername, newRole } = await request.json();
+      
+      const targetDataStr = await env.DB.get(`user:${targetUsername}`);
+      if (!targetDataStr) return new Response("User not found", { status: 404 });
+      
+      let targetData = JSON.parse(targetDataStr);
+      targetData.role = newRole;
+      await env.DB.put(`user:${targetUsername}`, JSON.stringify(targetData));
+      
+      return new Response(JSON.stringify({ success: true }));
     }
 
     // Якщо це не API, повертаємо статичні файли

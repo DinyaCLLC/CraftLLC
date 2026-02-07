@@ -1,110 +1,181 @@
-window.addEventListener("load", () => {
-    const loader = document.getElementById('loader-wrapper');
-    if (loader) loader.style.display = 'none';
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    // ЛОГІКА ДЛЯ АДАПТИВНОГО МЕНЮ
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navMenu = document.querySelector('.nav-menu');
-
-    if (menuToggle && navMenu) {
-        menuToggle.addEventListener('click', () => {
-            const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true' || false;
-
-            // Перемикаємо клас active для відображення меню
-            navMenu.classList.toggle('active');
-
-            // Оновлюємо атрибут для доступності
-            menuToggle.setAttribute('aria-expanded', !isExpanded);
-        });
-    }
-});
-
-// Додайте це десь у глобальній області видимості вашого скрипту на сторінці /recipes
-window.updateRecipesDisplay = function () {
-    // Ці функції вже повинні бути визначені у вашому скрипті на сторінці /recipes
-    processRecipeCards();
-    filterAndSortRecipes();
-};
-
-// Додайте цей слухач подій у ваш скрипт на сторінці /recipes
-window.addEventListener('message', (event) => {
-    // Перевірте, що повідомлення надходить з очікуваного джерела (вашої головної сторінки)
-    if (event.origin !== window.location.origin) {
-        console.warn('Отримано повідомлення з невідомого джерела:', event.origin);
-        return;
-    }
-
-    // Обробляємо повідомлення
-    if (event.data && event.data.type === 'UPDATE_RECIPES_DISPLAY') {
-        console.log('Отримано команду UPDATE_RECIPES_DISPLAY від батьківської сторінки.');
-        // Перезавантажуємо cheatCodesUsed з localStorage, оскільки батьківська сторінка могла його змінити
-        cheatCodesUsed = JSON.parse(localStorage.getItem('cheatCodesUsed')) || {};
-        // Викликаємо функції для оновлення відображення рецептів
-        processRecipeCards();
-        filterAndSortRecipes();
-    } else if (event.data && event.data.type === 'SUBMIT_CHEAT_CODE') {
-        const enteredCode = event.data.code;
-        let foundMatch = false;
-
-        document.querySelectorAll('.card').forEach((card, index) => {
-            const dateAttribute = card.dataset.date;
-            const cheatCodeAttribute = card.dataset.cheatcode ? card.dataset.cheatcode.toLowerCase() : null; // Convert to lowercase
-            const cardId = `card-${index}`;
-
-            if (dateAttribute && cheatCodeAttribute && enteredCode === cheatCodeAttribute) {
-                const [day, month, year] = dateAttribute.split('.').map(Number);
-                const releaseDate = new Date(year, month - 1, day);
-                const now = new Date();
-
-                if (now.getTime() < releaseDate.getTime()) {
-                    // If date has not passed, and cheat code matches
-                    cheatCodesUsed[cardId] = true; // Mark this card as bypassed
-                    saveCheatCodes(); // Save updated state
-                    foundMatch = true;
-                }
-            }
-        });
-
-        if (foundMatch) {
-            processRecipeCards();
-            filterAndSortRecipes();
-            parent.postMessage({ type: 'CHEAT_CODE_RESULT', success: true }, '*');
-        } else {
-            parent.postMessage({ type: 'CHEAT_CODE_RESULT', success: false }, '*');
-        }
-    }
-});
-
-// Також переконайтеся, що ці функції викликаються при початковому завантаженні сторінки /recipes
-document.addEventListener("DOMContentLoaded", () => {
-    // Ці функції вже повинні бути визначені у вашому скрипті на сторінці /recipes
-    processRecipeCards();
-    filterAndSortRecipes();
-});
-
 let currentPage = 1;
 let filteredCards = [];
 const recipesPerPage = 5;
-let countdownIntervals = {}; // Object to store intervals for each card
-// Load cheat codes from localStorage or initialize empty
+let countdownIntervals = {};
 let cheatCodesUsed = JSON.parse(localStorage.getItem('cheatCodesUsed')) || {};
 
-const inIframe = () => {
+// --- Interactions Logic ---
+
+async function fetchInteractionData(recipeId) {
     try {
-        return window.self !== window.top;
+        const res = await fetch(`/api/recipes/data?id=${recipeId}`);
+        return await res.json();
     } catch (e) {
-        return true;
+        return { likesCount: 0, comments: [] };
     }
 }
 
-// Функція для збереження активних чит-кодів у localStorage
-function saveCheatCodes() {
-    localStorage.setItem('cheatCodesUsed', JSON.stringify(cheatCodesUsed));
+async function toggleLike(recipeId, btn) {
+    try {
+        const res = await fetch('/api/recipes/like', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: recipeId })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        
+        const countSpan = btn.querySelector('.like-count');
+        countSpan.textContent = data.count;
+        btn.classList.toggle('active');
+    } catch (e) {
+        alert(e.message);
+    }
 }
 
-// Функція для розрахунку відстані Левенштейна (для пошуку)
+async function handleCommentSubmit(recipeId, input, container) {
+    const content = input.value.trim();
+    if (!content) return;
+    
+    try {
+        const res = await fetch('/api/recipes/comment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: recipeId, content })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        
+        input.value = '';
+        renderComment(data, container, recipeId);
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+// Global user data for role checks
+let currentUserData = null;
+
+async function fetchUserRole() {
+    try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) currentUserData = await res.json();
+    } catch (e) {}
+}
+
+function renderComment(comment, container, recipeId) {
+    const div = document.createElement('div');
+    div.classList.add('recipe-comment');
+    div.dataset.id = comment.id;
+    
+    const time = new Date(comment.timestamp).toLocaleString('uk-UA');
+    const canHeart = currentUserData && (currentUserData.role === 'admin' || currentUserData.role === 'responder');
+    const canReply = currentUserData && (currentUserData.role === 'admin' || currentUserData.role === 'responder' || currentUserData.username === comment.username);
+    
+    div.innerHTML = `
+        <div class="comment-header">
+            <strong>${comment.nickname}</strong> <span class="comment-time">${time}</span>
+            ${comment.hearts && comment.hearts.length ? '<span class="admin-heart">❤</span>' : ''}
+        </div>
+        <div class="comment-content">${comment.content}</div>
+        <div class="comment-actions">
+            <button class="comment-like-btn" onclick="interactComment('${recipeId}', '${comment.id}', 'like', this)">
+                <i class="far fa-thumbs-up"></i> <span class="c-like-count">${comment.likes ? comment.likes.length : 0}</span>
+            </button>
+            ${canReply ? `<button class="reply-toggle-btn" onclick="toggleReplyForm('${comment.id}')">Відповісти</button>` : ''}
+            ${canHeart ? `
+            <button class="heart-btn ${comment.hearts && comment.hearts.includes(currentUserData.username) ? 'hearted' : ''}" onclick="interactComment('${recipeId}', '${comment.id}', 'heart', this)">
+                <i class="fas fa-heart"></i>
+            </button>` : ''}
+        </div>
+        <div id="replies-${comment.id}" class="comment-replies">
+            ${(comment.replies || []).map(r => `
+                <div class="comment-reply">
+                    <strong>${r.nickname}</strong>: ${r.content}
+                    ${r.hearts && r.hearts.length ? ' <span class="admin-heart">❤</span>' : ''}
+                </div>
+            `).join('')}
+        </div>
+        <div id="reply-form-${comment.id}" class="reply-form hidden">
+            <input type="text" placeholder="Ваша відповідь..." id="reply-input-${comment.id}">
+            <button onclick="submitReply('${recipeId}', '${comment.id}')">Надіслати</button>
+        </div>
+    `;
+    container.prepend(div);
+}
+
+window.toggleReplyForm = function(commentId) {
+    document.getElementById(`reply-form-${commentId}`).classList.toggle('hidden');
+};
+
+window.interactComment = async function(recipeId, commentId, action, btn) {
+    try {
+        const res = await fetch('/api/comments/interact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipeId, commentId, action })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        
+        if (action === 'like') {
+            const count = btn.querySelector('.c-like-count');
+            count.textContent = parseInt(count.textContent) + (data.liked ? 1 : -1); 
+            // Correct logic would be to reload or use data returning from API
+            location.reload(); // Simple for now
+        } else {
+            location.reload();
+        }
+    } catch (e) {
+        alert(e.message);
+    }
+};
+
+window.submitReply = async function(recipeId, commentId) {
+    const input = document.getElementById(`reply-input-${commentId}`);
+    const content = input.value.trim();
+    if (!content) return;
+    
+    try {
+        const res = await fetch('/api/comments/reply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipeId, commentId, content })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        
+        input.value = '';
+        const repliesContainer = document.getElementById(`replies-${commentId}`);
+        const replyDiv = document.createElement('div');
+        replyDiv.classList.add('comment-reply');
+        replyDiv.innerHTML = `<strong>${data.nickname}</strong>: ${data.content}`;
+        repliesContainer.appendChild(replyDiv);
+        document.getElementById(`reply-form-${commentId}`).classList.add('hidden');
+    } catch (e) {
+        alert(e.message);
+    }
+};
+
+async function loadInteractions(card, recipeId) {
+    const data = await fetchInteractionData(recipeId);
+    const likeBtn = card.querySelector('.like-btn');
+    if (likeBtn) {
+        const countSpan = likeBtn.querySelector('.like-count');
+        if (countSpan) countSpan.textContent = data.likesCount;
+    }
+    
+    const commentCount = card.querySelector('.comment-count');
+    if (commentCount) commentCount.textContent = data.comments.length;
+    
+    const commentsList = card.querySelector('.comments-list');
+    if (commentsList && data.comments) {
+        data.comments.forEach(c => renderComment(c, commentsList, recipeId));
+    }
+}
+
+// --- Restored Core Logic ---
+
 const levenshtein = (a, b) => {
     if (a.length === 0) return b.length;
     if (b.length === 0) return a.length;
@@ -114,458 +185,145 @@ const levenshtein = (a, b) => {
     for (let j = 1; j <= b.length; j += 1) {
         for (let i = 1; i <= a.length; i += 1) {
             const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
-            matrix[j][i] = Math.min(
-                matrix[j][i - 1] + 1,
-                matrix[j - 1][i] + 1,
-                matrix[j - 1][i - 1] + indicator
-            );
+            matrix[j][i] = Math.min(matrix[j][i - 1] + 1, matrix[j - 1][i] + 1, matrix[j - 1][i - 1] + indicator);
         }
     }
     return matrix[b.length][a.length];
 };
 
-// Функція для завантаження відео для конкретної картки
-function loadVideoForCard(card) {
-    const placeholder = card.querySelector('.card__vid-placeholder');
-    if (placeholder) {
-        const videoId = placeholder.dataset.videoid;
-        if (videoId) {
-            const iframe = document.createElement('iframe');
-            iframe.setAttribute('allowfullscreen', '');
-            iframe.setAttribute('frameborder', '0');
-            iframe.setAttribute('src', `https://youtube.com/embed/${videoId}?rel=0`);
-            iframe.classList.add('card__vid');
-            // Замінюємо плейсхолдер на iframe
-            placeholder.parentNode.replaceChild(iframe, placeholder);
-        }
-    }
-}
-
-
-// Функція для відображення карток на поточній сторінці
-function displayPage(page) {
-    console.log("displayPage called for page:", page);
-    const recipeCards = document.querySelectorAll('.card');
-    console.log("Total recipe cards found in DOM (inside displayPage):", recipeCards.length);
-    recipeCards.forEach(card => card.style.display = 'none');
-
-    const startIndex = (page - 1) * recipesPerPage;
-    const endIndex = startIndex + recipesPerPage;
-    const pageCards = filteredCards.slice(startIndex, endIndex);
-    console.log("Cards to display on current page:", pageCards.length);
-
-    pageCards.forEach((card) => {
-        card.style.display = 'block';
-        // Завантажуємо відео для кожної картки, що відображається
-        loadVideoForCard(card);
-    });
-
-    updatePaginationControls();
-}
-
-// Функція для оновлення елементів керування пагінацією
-function updatePaginationControls() {
-    console.log("updatePaginationControls called. filteredCards.length:", filteredCards.length);
-    const totalPages = Math.ceil(filteredCards.length / recipesPerPage);
-    const pageInfo = document.getElementById('page-info');
-    const prevButton = document.getElementById('prev-page');
-    const nextButton = document.getElementById('next-page');
-    const searchResultsCount = document.getElementById('searchResultsCount');
-
-    pageInfo.textContent = `Сторінка ${currentPage} з ${totalPages > 0 ? totalPages : 1}`;
-    prevButton.disabled = currentPage === 1;
-    nextButton.disabled = currentPage === totalPages || totalPages === 0;
-
-    searchResultsCount.textContent = `Знайдено рецептів: ${filteredCards.length}`;
-    console.log("Search results count set to:", searchResultsCount.textContent);
-}
-
-// Функція для нормалізації тексту (для пошуку)
 function normalizeText(text) {
-    return text
-        .toLowerCase()
-        .replace(/[^\u0400-\u04FFa-z0-9\s]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+    return text.toLowerCase().replace(/[^\u0400-\u04FFa-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-// Функція для форматування різниці в часі з роками та місяцями
 function formatCountdown(ms) {
     const totalSeconds = Math.floor(ms / 1000);
     const totalMinutes = Math.floor(totalSeconds / 60);
     const totalHours = Math.floor(totalMinutes / 60);
     const totalDays = Math.floor(totalHours / 24);
-
-    const years = Math.floor(totalDays / 365);
-    const remainingDaysAfterYears = totalDays % 365;
-    const months = Math.floor(remainingDaysAfterYears / 30); // Approximation
-    const days = remainingDaysAfterYears % 30;
-    const hours = totalHours % 24;
-    const minutes = totalMinutes % 60;
-    const seconds = totalSeconds % 60;
-
-    let parts = [];
-    if (years > 0) parts.push(`<span class="value">${years}</span><span class="label">років</span>`);
-    if (months > 0 || years > 0) parts.push(`<span class="value">${months}</span><span class="label">міс</span>`);
-    if (days > 0 || months > 0 || years > 0) parts.push(`<span class="value">${days}</span><span class="label">днів</span>`);
-    if (hours > 0 || days > 0 || months > 0 || years > 0) parts.push(`<span class="value">${hours}</span><span class="label">год</span>`);
-    if (minutes > 0 || hours > 0 || days > 0 || months > 0 || years > 0) parts.push(`<span class="value">${minutes}</span><span class="label">хв</span>`);
-    parts.push(`<span class="value">${seconds}</span><span class="label">с</span>`);
-
-    // Filter out parts that are 0 if higher units are also 0
-    let effectiveParts = [];
-    let foundNonZero = false;
-    for (let i = 0; i < parts.length; i++) {
-        const valueMatch = parts[i].match(/<span class="value">(\d+)<\/span>/);
-        if (valueMatch && parseInt(valueMatch[1]) > 0) {
-            foundNonZero = true;
-        }
-        if (foundNonZero || i >= parts.length - 2) { // Always show minutes and seconds
-            effectiveParts.push(parts[i]);
-        }
-    }
-
-    return effectiveParts.join('');
+    const hours = totalHours % 24, minutes = totalMinutes % 60, seconds = totalSeconds % 60;
+    return `<span class="value">${totalDays}</span><span class="label">дн</span> <span class="value">${hours}</span><span class="label">год</span> <span class="value">${minutes}</span><span class="label">хв</span> <span class="value">${seconds}</span><span class="label">с</span>`;
 }
 
-
-// Функція для фільтрації та сортування рецептів
-function filterAndSortRecipes() {
-    console.log("filterAndSortRecipes called.");
-    const searchInput = document.getElementById('recipeSearch');
-    const sortSelect = document.getElementById('recipeSort');
+function displayPage(page) {
     const recipeCards = document.querySelectorAll('.card');
-    console.log("Recipe cards found by querySelectorAll (inside filterAndSortRecipes):", recipeCards.length);
+    recipeCards.forEach(card => card.style.display = 'none');
+    const startIndex = (page - 1) * recipesPerPage;
+    const endIndex = startIndex + recipesPerPage;
+    const pageCards = filteredCards.slice(startIndex, endIndex);
+    pageCards.forEach(card => card.style.display = 'block');
+    updatePaginationControls();
+}
 
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    const selectedType = sortSelect.value;
+function updatePaginationControls() {
+    const totalPages = Math.ceil(filteredCards.length / recipesPerPage);
+    const pageInfo = document.getElementById('page-info');
+    if (pageInfo) pageInfo.textContent = `Сторінка ${currentPage} з ${totalPages || 1}`;
+    const prev = document.getElementById('prev-page');
+    const next = document.getElementById('next-page');
+    if (prev) prev.disabled = currentPage === 1;
+    if (next) next.disabled = currentPage === totalPages || totalPages === 0;
+}
 
-    const normalizedSearchTerm = normalizeText(searchTerm);
+function filterAndSortRecipes() {
+    const searchTerm = normalizeText(document.getElementById('recipeSearch').value);
+    const selectedType = document.getElementById('recipeSort').value;
+    const recipeCards = Array.from(document.querySelectorAll('.card'));
 
-    if (normalizedSearchTerm === '') {
-        // If search term is empty, consider all cards that match the selected type
-        filteredCards = Array.from(recipeCards).filter(card => {
-            const recipeType = card.dataset.recipetype;
-            return selectedType === 'all' || recipeType === selectedType;
-        });
-        console.log("Filtered cards (empty search term):", filteredCards.length);
-        currentPage = 1;
-        displayPage(currentPage);
-        return;
-    }
-
-    const queryWords = normalizedSearchTerm.split(' ').filter(w => w.length > 0);
-
-    filteredCards = Array.from(recipeCards).filter(card => {
-        const recipeType = card.dataset.recipetype;
-        const matchesType = selectedType === 'all' || recipeType === selectedType;
+    filteredCards = recipeCards.filter(card => {
+        const matchesType = selectedType === 'all' || card.dataset.recipetype === selectedType;
         if (!matchesType) return false;
-
-        const title = card.querySelector('.card__title').textContent;
-        const tags = card.dataset.tags ? card.dataset.tags : '';
-        const description = card.querySelector('.card__desc').textContent;
-
-        const normalizedCardText = normalizeText(`${title} ${tags} ${description}`);
-        const cardWords = normalizedCardText.split(' ').filter(w => w.length > 0);
-
-        const blocklistedQueriesRaw = card.dataset.blocklistedqueries;
-        if (blocklistedQueriesRaw) {
-            const blocklistedWords = blocklistedQueriesRaw.split(',').map(w => normalizeText(w));
-
-            const isBlocklisted = queryWords.some(qWord => blocklistedWords.includes(qWord));
-            if (isBlocklisted) {
-                return false;
-            }
-        }
-
-        const hasMatch = queryWords.some(queryWord => {
-            return cardWords.some(cardWord => {
-                if (queryWord === cardWord) {
-                    return true;
-                }
-                if (cardWord.includes(queryWord)) {
-                    return true;
-                }
-
-                const distance = levenshtein(queryWord, cardWord);
-                let threshold;
-                if (queryWord.length <= 4) {
-                    threshold = 0;
-                } else if (queryWord.length <= 7) {
-                    threshold = 3;
-                } else {
-                    threshold = 4;
-                }
-
-                if (distance <= threshold) {
-                    return true;
-                }
-                return false;
-            });
-        });
-
-        return hasMatch;
+        if (!searchTerm) return true;
+        const text = normalizeText(card.querySelector('.card__title').textContent + (card.dataset.tags || ''));
+        return text.includes(searchTerm) || levenshtein(searchTerm, text) < 3;
     });
 
-    console.log("Filtered cards (with search term):", filteredCards.length);
     currentPage = 1;
     displayPage(currentPage);
 }
 
-// Функція для обробки карток на основі data-date та чит-кодів
 function processRecipeCards() {
-    console.log("processRecipeCards called.");
     const now = new Date();
     document.querySelectorAll('.card').forEach((card, index) => {
-        const dateAttribute = card.dataset.date;
-        const cheatCodeAttribute = card.dataset.cheatcode;
-        const cardId = `card-${index}`; // Unique ID for each card to manage intervals
-
-        // Clear any existing interval for this card
-        if (countdownIntervals[cardId]) {
-            clearInterval(countdownIntervals[cardId]);
-            delete countdownIntervals[cardId];
-        }
-
-        // Check if cheat code has been successfully used for this card
-        const isCheatCodeActive = cheatCodesUsed[cardId] === true;
-
-        if (dateAttribute) {
-            // Парсинг дати у форматі "dd.MM.yyyy"
-            const [day, month, year] = dateAttribute.split('.').map(Number);
-            // Місяці в JavaScript Date об'єкті є 0-індексованими (0-11)
-            const releaseDate = new Date(year, month - 1, day);
-            const timeDiff = releaseDate.getTime() - now.getTime(); // Calculate timeDiff here
-
-            const cardVidContainer = card.querySelector('.card__vid-placeholder, .card__vid');
-            const cardTitle = card.querySelector('.card__title');
-            let cardDesc = card.querySelector('.card__desc');
-
-            // If cardDesc doesn't exist, create it
-            if (!cardDesc) {
-                cardDesc = document.createElement('p');
-                cardDesc.classList.add('card__desc');
-                card.querySelector('.card__body').appendChild(cardDesc);
-            }
-
-            // Store original title and href if they exist
-            if (cardTitle && !cardTitle.dataset.originalTitle) {
-                cardTitle.dataset.originalTitle = cardTitle.textContent;
-                cardTitle.dataset.originalHref = cardTitle.href;
-            }
-            // Store original description if it exists
-            if (cardDesc && !cardDesc.dataset.originalDescription) {
-                cardDesc.dataset.originalDescription = cardDesc.innerHTML;
-            }
-
-            // Function to update the countdown
-            const updateCountdown = () => {
-                const currentTime = new Date();
-                const currentDiff = releaseDate.getTime() - currentTime.getTime(); // Use currentDiff inside interval
-
-                if (currentDiff > 0 && !isCheatCodeActive) {
-                    // Recipe is not yet available and cheat code is not active
-                    if (cardVidContainer) cardVidContainer.style.display = 'none'; // Hide video
-                    if (cardTitle) {
-                        cardTitle.textContent = 'Секрет'; // Change title to "Секрет"
-                        cardTitle.style.pointerEvents = 'none'; // Disable clicks
-                        cardTitle.style.cursor = 'default';
-                        cardTitle.removeAttribute('href'); // Remove link
-                    }
-                    cardDesc.innerHTML = `Цей рецепт недоступний!<br>Він стане доступним: ${dateAttribute}<div class="card__timer">${formatCountdown(currentDiff)}</div>`;
-                } else {
-                    // Recipe is available or cheat code is active
-                    if (cardVidContainer) cardVidContainer.style.display = 'block'; // Show video
-                    if (cardTitle) {
-                        const originalTitle = cardTitle.dataset.originalTitle || "Торт 'Жіночий каприз'"; // Fallback
-                        cardTitle.textContent = originalTitle;
-                        cardTitle.style.pointerEvents = 'auto';
-                        cardTitle.style.cursor = 'pointer';
-                        cardTitle.href = cardTitle.dataset.originalHref || "https://youtu.be/8WZ-W1o2gLQ"; // Fallback
-                    }
-                    // Restore original description or remove timer
-                    const originalDescription = cardDesc.dataset.originalDescription || ''; // Get original description
-                    cardDesc.innerHTML = originalDescription;
-
-                    // Clear the interval as the recipe is now available or bypassed
-                    clearInterval(countdownIntervals[cardId]);
-                    delete countdownIntervals[cardId];
-                }
-            };
-
-
-            // Initial call to set the state
-            updateCountdown();
-
-            // Set interval to update countdown every second if not bypassed
-            if (timeDiff > 0 && !isCheatCodeActive) {
-                countdownIntervals[cardId] = setInterval(updateCountdown, 1000);
-            }
-        } else {
-            // If no data-date, ensure card is visible and timer is cleared
-            const cardVidContainer = card.querySelector('.card__vid-placeholder, .card__vid');
-            const cardTitle = card.querySelector('.card__title');
-            const cardDesc = card.querySelector('.card__desc');
-
-            if (cardVidContainer) cardVidContainer.style.display = 'block';
-            if (cardTitle) {
-                const originalTitle = cardTitle.dataset.originalTitle || cardTitle.textContent;
-                cardTitle.textContent = originalTitle;
-                cardTitle.style.pointerEvents = 'auto';
-                cardTitle.style.cursor = 'pointer';
-                cardTitle.href = cardTitle.dataset.originalHref || cardTitle.href;
-            }
-            if (cardDesc) {
-                const originalDescription = cardDesc.dataset.originalDescription || cardDesc.innerHTML;
-                cardDesc.innerHTML = originalDescription;
-            }
-        }
-    });
-}
-
-// Функція для відображення активних чит-кодів
-function renderActiveCheatCodes() {
-    const activeCheatCodesList = document.getElementById('activeCheatCodesList');
-    activeCheatCodesList.innerHTML = ''; // Очистити попередній список
-
-    const allCards = document.querySelectorAll('.card');
-    let hasActiveCodes = false;
-
-    allCards.forEach((card, index) => {
+        const dateAttr = card.dataset.date;
         const cardId = `card-${index}`;
-        const cheatCodeAttribute = card.dataset.cheatcode;
-        const dateAttribute = card.dataset.date;
-
-        // Показувати тільки якщо чит-код існує для картки І він активний І дата ще не настала природним шляхом
-        if (cheatCodeAttribute && cheatCodesUsed[cardId] === true) {
-            const [day, month, year] = dateAttribute.split('.').map(Number);
-            const releaseDate = new Date(year, month - 1, day);
-            const now = new Date();
-
-            if (now.getTime() < releaseDate.getTime()) { // Показувати тільки якщо все ще обійдено
-                hasActiveCodes = true;
-                const cardTitle = card.querySelector('.card__title').dataset.originalTitle || card.querySelector('.card__title').textContent;
-                const itemDiv = document.createElement('div');
-                itemDiv.classList.add('active-code-item');
-                itemDiv.innerHTML = `
-                <span>${cardTitle} (${cheatCodeAttribute})</span>
-                <button class="remove-cheat-code-btn" data-card-id="${cardId}">Вимкнути</button>
-            `;
-                activeCheatCodesList.appendChild(itemDiv);
+        if (countdownIntervals[cardId]) clearInterval(countdownIntervals[cardId]);
+        if (dateAttr && !cheatCodesUsed[cardId]) {
+            const [d, m, y] = dateAttr.split('.').map(Number);
+            const release = new Date(y, m - 1, d);
+            if (release > now) {
+                const title = card.querySelector('.card__title');
+                if (title) {
+                    title.dataset.origText = title.textContent;
+                    title.textContent = "Секрет";
+                    title.style.pointerEvents = "none";
+                }
+                const desc = card.querySelector('.card__desc');
+                if (desc) {
+                    desc.dataset.origHtml = desc.innerHTML;
+                    const update = () => {
+                        const diff = release - new Date();
+                        if (diff <= 0) {
+                            location.reload();
+                        } else {
+                            desc.innerHTML = `Доступно через: ${formatCountdown(diff)}`;
+                        }
+                    };
+                    update();
+                    countdownIntervals[cardId] = setInterval(update, 1000);
+                }
             }
         }
-    });
-
-    if (!hasActiveCodes) {
-        activeCheatCodesList.innerHTML = '<p style="color: #aaa;">Немає активних чит-кодів.</p>';
-    }
-
-    // Додати обробники подій для кнопок "Вимкнути"
-    activeCheatCodesList.querySelectorAll('.remove-cheat-code-btn').forEach(button => {
-        button.addEventListener('click', (event) => {
-            const cardIdToRemove = event.target.dataset.cardId;
-            delete cheatCodesUsed[cardIdToRemove]; // Видалити активний стан
-            saveCheatCodes(); // Зберегти оновлений стан
-            processRecipeCards(); // Повторно обробити картки для оновлення видимості
-            filterAndSortRecipes(); // Повторно відфільтрувати та відсортувати для оновлення відображення
-            renderActiveCheatCodes(); // Повторно відрендерити список у модальному вікні
-        });
     });
 }
 
 function generateRecipeCard(recipe, index) {
     const card = document.createElement('div');
     card.classList.add('card');
+    const recipeId = recipe.id || `recipe-${index}`;
+    card.dataset.id = recipeId;
     card.dataset.recipetype = recipe.recipe_type;
     card.dataset.tags = recipe.keywords.join(', ');
-    if (recipe.excluded_queries && recipe.excluded_queries.length > 0) {
-        card.dataset.blocklistedqueries = recipe.excluded_queries.join(',');
-    }
-    if (recipe.recipe_unchecked) {
-        card.dataset.recipeunchecked = true;
-    }
-    if (recipe.date) {
-        card.dataset.date = recipe.date;
-    }
-    if (recipe.cheat_code) {
-        card.dataset.cheatcode = recipe.cheat_code;
-    }
+    if (recipe.date) card.dataset.date = recipe.date;
 
-    let videoElement;
+    let videoElement = '';
     if (recipe.video_id) {
-        videoElement = `<div class="card__vid-placeholder" data-videoid="${recipe.video_id}"></div>`;
-    } else if (recipe.video_src) {
-        videoElement = `<video class="card__vid" src="${recipe.video_src}" preload controls></video>`;
-    }
-
-    let ingredientsHtml = '';
-    recipe.ingredients.forEach(ingredientGroup => {
-        if (ingredientGroup._name) {
-            ingredientsHtml += `<br>Інградієнти для ${ingredientGroup._name}:<br>`;
-        } else {
-            ingredientsHtml += `<br>Інградієнти:<br>`;
-        }
-        for (const [name, amount] of Object.entries(ingredientGroup)) {
-            if (name !== '_name') {
-                ingredientsHtml += `${name} - ${amount || ''}<br>`;
-            }
-        }
-    });
-
-    let propertiesHtml = '';
-    if (recipe.properties) {
-        propertiesHtml += '<br>Властивості:<br>';
-        if (recipe.properties.temperature) {
-            const temp = String(recipe.properties.temperature);
-            if (/^[\d-]+$/.test(temp)) {
-                propertiesHtml += `Температура: ${temp}°C<br>`;
-            } else {
-                propertiesHtml += `Температура: ${temp}<br>`;
-            }
-        }
-        if (recipe.properties.time) {
-            propertiesHtml += `Час: ${recipe.properties.time}<br>`;
-        }
-        if (recipe.properties.mdiam) {
-            propertiesHtml += `Діаметр: ${recipe.properties.mdiam}<br>`;
-        }
-    }
-
-    let linkHref = '#';
-    if (recipe.video_id) {
-        linkHref = `https://youtube.com/watch?v=${recipe.video_id}`;
-    } else if (recipe.video_src) {
-        if (recipe.video_link) {
-            linkHref = recipe.video_link;
-        } else {
-            linkHref = recipe.video_src;
-        }
+        videoElement = `<div class="card__vid-placeholder" data-videoid="${recipe.video_id}">
+            <iframe width="100%" height="200" src="https://www.youtube.com/embed/${recipe.video_id}" frameborder="0" allowfullscreen></iframe>
+        </div>`;
     }
 
     card.innerHTML = `
     ${videoElement}
     <div class="card__body">
-        <a href="${linkHref}" class="card__title" target="_blank">${recipe.name}</a>
-        <p class="card__desc">
-            ${recipe.description || ''}
-            ${propertiesHtml}
-            ${ingredientsHtml}
-        </p>
+        <a href="#" class="card__title">${recipe.name}</a>
+        <div class="recipe-interactions">
+            <button class="like-btn" onclick="toggleLike('${recipeId}', this)">
+                <i class="fas fa-heart"></i> <span class="like-count">0</span>
+            </button>
+            <button class="comment-toggle-btn" onclick="this.closest('.card').querySelector('.comments-section').classList.toggle('hidden')">
+                <i class="fas fa-comment"></i> <span class="comment-count">0</span>
+            </button>
+        </div>
+        <p class="card__desc">${recipe.description || ''}</p>
+        
+        <div class="comments-section hidden">
+            <div class="add-comment">
+                <input type="text" placeholder="Напишіть коментар..." class="comment-input">
+                <button class="post-comment-btn" onclick="handleCommentSubmit('${recipeId}', this.previousElementSibling, this.closest('.comments-section').querySelector('.comments-list'))">Послати</button>
+            </div>
+            <div class="comments-list"></div>
+        </div>
     </div>
-`;
+    `;
 
-    // Add double-click event listener
+    loadInteractions(card, recipeId);
+
     card.addEventListener('dblclick', () => {
-        if (inIframe()) {
-            parent.postMessage({ type: 'openCheatCodeModal' }, '*');
-        } else {
-            const cheatCodeModal = document.getElementById('cheatCodeModal');
-            const cheatCodeInput = document.getElementById('cheatCodeInput');
-            const modalMessage = document.getElementById('modalMessage');
-
-            cheatCodeInput.value = '';
-            modalMessage.textContent = '';
-            cheatCodeModal.style.display = 'flex';
+        const modal = document.getElementById('cheatCodeModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.getElementById('cheatCodeInput').value = '';
+            document.getElementById('modalMessage').textContent = '';
         }
     });
 
@@ -575,182 +333,85 @@ function generateRecipeCard(recipe, index) {
 async function loadRecipes() {
     const response = await fetch('/recipes/list.json');
     const recipes = await response.json();
-    const recipesContainer = document.getElementById('recipesContainer');
-
-    recipes.forEach((recipe, index) => {
-        const card = generateRecipeCard(recipe, index);
-        recipesContainer.appendChild(card);
-    });
-
-    // Initial setup after loading recipes
+    const container = document.getElementById('recipesContainer');
+    if (container) {
+        container.innerHTML = '';
+        recipes.forEach((r, i) => container.appendChild(generateRecipeCard(r, i)));
+    }
     processRecipeCards();
     filterAndSortRecipes();
 }
 
-
 document.addEventListener("DOMContentLoaded", () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isMainPageView = urlParams.get('mainPageView') === 'true';
+    const submitCheat = document.getElementById('submitCheatCode');
+    if (submitCheat) {
+        submitCheat.addEventListener('click', async () => {
+            const code = document.getElementById('cheatCodeInput').value.trim();
+            if (!code) return;
 
-    if (isMainPageView) {
-        const loader = document.getElementById('loader-wrapper');
-        if (loader) {
-            loader.style.display = 'none';
-        }
-    } else {
-        // If not in iframe, add the cheat code modal
-        const modalContainer = document.createElement('div');
-        modalContainer.innerHTML = `
-        <!-- Cheat Code Modal -->
-        <div id="cheatCodeModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <h2>Введіть чит-код</h2>
-                <input type="text" id="cheatCodeInput" placeholder="Ваш чит-код">
-                <button id="submitCheatCode">Підтвердити</button>
-                <button id="cancelCheatCode">Скасувати</button>
-                <p id="modalMessage" class="modal-message"></p>
-            </div>
-        </div>
+            // 1. Try Admin API
+            try {
+                const res = await fetch('/api/auth/admin-cheat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    const msg = document.getElementById('modalMessage');
+                    msg.style.color = 'green';
+                    msg.textContent = data.message;
+                    setTimeout(() => location.reload(), 1500);
+                    return;
+                }
+            } catch (e) {
+                console.error("Admin check failed", e);
+            }
 
-        <!-- Active Cheat Codes Modal -->
-        <div id="activeCheatCodesModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <h2>Активні чит-коди</h2>
-                <div id="activeCheatCodesList" class="active-codes-list">
-                    <!-- Active cheat codes will be rendered here -->
-                </div>
-                <br>
-                <button id="addCheatCodeBtn">Додати чит-код</button>
-                <button id="closeActiveCheatCodesModal">Закрити</button>
-            </div>
-        </div>
-    `;
-        document.body.appendChild(modalContainer);
-
-        const submitCheatCodeBtn = document.getElementById('submitCheatCode');
-        const cancelCheatCodeBtn = document.getElementById('cancelCheatCode');
-        const addCheatCodeBtn = document.getElementById('addCheatCodeBtn');
-        const closeActiveCheatCodesModal = document.getElementById('closeActiveCheatCodesModal');
-        const cheatCodeModal = document.getElementById('cheatCodeModal');
-        const activeCheatCodesModal = document.getElementById('activeCheatCodesModal');
-        const cheatCodeInput = document.getElementById('cheatCodeInput');
-        const modalMessage = document.getElementById('modalMessage');
-
-        submitCheatCodeBtn.addEventListener('click', () => {
-            const enteredCode = cheatCodeInput.value.trim().toLowerCase(); // Convert to lowercase
-            let foundMatch = false;
-
+            // 2. Try Recipe Unlock
+            let found = false;
             document.querySelectorAll('.card').forEach((card, index) => {
-                const dateAttribute = card.dataset.date;
-                const cheatCodeAttribute = card.dataset.cheatcode ? card.dataset.cheatcode.toLowerCase() : null; // Convert to lowercase
-                const cardId = `card-${index}`;
-
-                if (dateAttribute && cheatCodeAttribute && enteredCode === cheatCodeAttribute) {
-                    const [day, month, year] = dateAttribute.split('.').map(Number);
-                    const releaseDate = new Date(year, month - 1, day);
-                    const now = new Date();
-
-                    if (now.getTime() < releaseDate.getTime()) {
-                        // If date has not passed, and cheat code matches
-                        cheatCodesUsed[cardId] = true; // Mark this card as bypassed
-                        saveCheatCodes(); // Save updated state
-                        foundMatch = true;
-                    }
+                if (card.dataset.cheatcode && card.dataset.cheatcode.toLowerCase() === code.toLowerCase()) {
+                    cheatCodesUsed[`card-${index}`] = true;
+                    found = true;
                 }
             });
 
-            if (foundMatch) {
-                modalMessage.style.color = 'green';
-                modalMessage.textContent = 'Чит-код прийнято! Рецепт розблоковано.';
-                setTimeout(() => {
-                    cheatCodeModal.style.display = 'none';
-                    processRecipeCards(); // Re-process cards to update visibility
-                    filterAndSortRecipes(); // Re-filter and sort to update display
-                }, 1500);
+            if (found) {
+                localStorage.setItem('cheatCodesUsed', JSON.stringify(cheatCodesUsed));
+                const msg = document.getElementById('modalMessage');
+                msg.style.color = 'green';
+                msg.textContent = 'Чит-код прийнято!';
+                setTimeout(() => location.reload(), 800);
             } else {
-                modalMessage.style.color = 'red';
-                modalMessage.textContent = 'Невірний чит-код або рецепт вже доступний.';
+                const msg = document.getElementById('modalMessage');
+                msg.style.color = 'red';
+                msg.textContent = 'Невірний код';
             }
-        });
-
-        cancelCheatCodeBtn.addEventListener('click', () => {
-            cheatCodeModal.style.display = 'none';
-        });
-
-        addCheatCodeBtn.addEventListener('click', () => {
-            activeCheatCodesModal.style.display = 'none'; // Close active codes modal
-            cheatCodeModal.style.display = 'flex'; // Open cheat code input modal
-            cheatCodeInput.value = '';
-            modalMessage.textContent = '';
-        });
-
-        closeActiveCheatCodesModal.addEventListener('click', () => {
-            activeCheatCodesModal.style.display = 'none';
         });
     }
 
-    console.log("DOMContentLoaded event fired.");
-    const searchInput = document.getElementById('recipeSearch');
-    const sortSelect = document.getElementById('recipeSort');
-    const prevButton = document.getElementById('prev-page');
-    const nextButton = document.getElementById('next-page');
-
-    // Load recipes and then initialize everything
-    loadRecipes().then(() => {
-        searchInput.addEventListener('keyup', filterAndSortRecipes);
-        sortSelect.addEventListener('change', filterAndSortRecipes);
-
-        prevButton.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                displayPage(currentPage);
-            }
-        });
-
-        nextButton.addEventListener('click', () => {
-            const totalPages = Math.ceil(filteredCards.length / recipesPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                displayPage(currentPage);
-            }
-        });
+    const prev = document.getElementById('prev-page');
+    if (prev) prev.addEventListener('click', () => { if (currentPage > 1) { currentPage--; displayPage(currentPage); } });
+    const next = document.getElementById('next-page');
+    if (next) next.addEventListener('click', () => { 
+        const totalPages = Math.ceil(filteredCards.length / recipesPerPage);
+        if (currentPage < totalPages) { currentPage++; displayPage(currentPage); } 
     });
 
-    const isLight = urlParams.get('light') === 'true';
+    const search = document.getElementById('recipeSearch');
+    if (search) search.addEventListener('input', filterAndSortRecipes);
+    const sort = document.getElementById('recipeSort');
+    if (sort) sort.addEventListener('change', filterAndSortRecipes);
 
-    if (isLight) {
-        document.body.style.background = 'none';
-        document.body.style.color = 'black';
-        const footer = document.getElementById("footerID");
-        if (footer) {
-            footer.style.background = '#aaa';
-        }
-
-        const allLinks = document.querySelectorAll('a');
-        allLinks.forEach(link => {
-            link.style.color = 'black';
-            const linkUrl = new URL(link.href);
-            if (!linkUrl.searchParams.has('light')) {
-                linkUrl.searchParams.set('light', 'true');
-                link.href = linkUrl.toString();
-            }
-        });
-        const searchInputStyle = document.getElementById('recipeSearch');
-        const sortSelectStyle = document.getElementById('recipeSort');
-        if (searchInputStyle) {
-            searchInputStyle.style.backgroundColor = '#f0f0f0';
-            searchInputStyle.style.color = '#333';
-        }
-        if (sortSelectStyle) {
-            sortSelectStyle.style.backgroundColor = '#f0f0f0';
-            sortSelectStyle.style.color = '#333';
-        }
-    }
+    fetchUserRole().then(() => {
+        loadRecipes();
+    });
 });
 
-// Clear all intervals when the page is unloaded to prevent memory leaks
-window.addEventListener('beforeunload', () => {
-    for (const cardId in countdownIntervals) {
-        clearInterval(countdownIntervals[cardId]);
-    }
+window.addEventListener("load", () => {
+    const loader = document.getElementById('loader-wrapper');
+    if (loader) loader.style.display = 'none';
 });
+

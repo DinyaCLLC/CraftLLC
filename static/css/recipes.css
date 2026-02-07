@@ -217,3 +217,146 @@ select {
         font-size: 0.6em;
     }
 }
+/* Interactions */
+.recipe-interactions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.like-btn, .comment-toggle-btn {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.3s;
+}
+
+.like-btn:hover, .like-btn.active {
+    color: #ff4d4d;
+}
+
+.comment-toggle-btn:hover {
+    color: #ffa516;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.comments-section {
+    margin-top: 20px;
+    border-top: 1px solid #333;
+    padding-top: 20px;
+}
+
+.add-comment {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.comment-input {
+    flex: 1;
+    margin-bottom: 0 !important;
+}
+
+.post-comment-btn {
+    background: orange;
+    color: white;
+    border: none;
+    padding: 0 15px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.recipe-comment {
+    background: #1a1a1a;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    position: relative;
+    border-left: 3px solid #333;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.comment-time {
+    color: #666;
+}
+
+.comment-content {
+    font-size: 15px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 12px;
+    font-size: 13px;
+}
+
+.comment-actions button {
+    background: none;
+    border: none;
+    color: #777;
+    cursor: pointer;
+}
+
+.comment-actions button:hover {
+    color: white;
+}
+
+.admin-heart {
+    color: #ff3366;
+    margin-left: 5px;
+    text-shadow: 0 0 5px rgba(255, 51, 102, 0.5);
+}
+
+.comment-replies {
+    margin-left: 20px;
+    margin-top: 10px;
+    border-left: 1px solid #333;
+    padding-left: 10px;
+}
+
+.comment-reply {
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #ccc;
+}
+
+.reply-form {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.reply-form input {
+    flex: 1;
+    height: 30px;
+    font-size: 14px;
+}
+
+.reply-form button {
+    background: #444;
+    color: white;
+    border: none;
+    padding: 0 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.heart-btn.hearted {
+    color: #ff3366 !important;
+}
