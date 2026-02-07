@@ -76,7 +76,6 @@
             <div class="profile-container">
                 <button class="logout-btn" onclick="handleLogout()">Вийти</button>
                 <div class="profile-header">
-                    <div class="profile-avatar" id="avatarLetter">?</div>
                     <div class="profile-info">
                         <h2 id="displayNickname">Завантаження...</h2>
                         <p id="displayUsername">@username</p>
@@ -149,7 +148,6 @@
             
             document.getElementById('displayNickname').textContent = user.nickname;
             document.getElementById('displayUsername').textContent = '@' + user.username;
-            document.getElementById('avatarLetter').textContent = user.nickname.charAt(0).toUpperCase();
             document.getElementById('updateNickname').value = user.nickname;
         }
 
