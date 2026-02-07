@@ -1,11 +1,42 @@
+const COOKIE_NAME = "auth_session";
+
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function getCookie(request, name) {
+  const cookieString = request.headers.get("Cookie");
+  if (!cookieString) return null;
+  const cookies = cookieString.split(";").map(c => c.trim());
+  for (const cookie of cookies) {
+    if (cookie.startsWith(name + "=")) {
+      return cookie.substring(name.length + 1);
+    }
+  }
+  return null;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    
-    // Нормалізуємо шлях: видаляємо зайві слеші на початку та в кінці
-    // Наприклад: "//api/recipes/latest/" перетвориться на "api/recipes/latest"
     const cleanPath = url.pathname.replace(/^\/+|\/+$/g, '');
 
+    // CORS Headers
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: corsHeaders });
+    }
+
+    // --- API: Recipes ---
     if (cleanPath === "api/recipes/latest") {
       try {
         const response = await fetch("https://craftllc.pages.dev/recipes/list.json");
@@ -24,7 +55,7 @@ export default {
           }), {
             headers: { 
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*" 
+              ...corsHeaders
             }
           });
         }
@@ -32,16 +63,143 @@ export default {
         return new Response(JSON.stringify(latestRecipe), {
           headers: { 
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*" 
+            ...corsHeaders
           }
         });
-
       } catch (error) {
         return new Response(JSON.stringify({ error: "Data fetch failed" }), {
           status: 500,
           headers: { "Content-Type": "application/json" }
         });
       }
+    }
+
+    // --- API: Auth ---
+    
+    // 1. Register
+    if (cleanPath === "api/auth/register" && request.method === "POST") {
+      const { username, password, nickname } = await request.json();
+      if (!username || !password || !nickname) {
+        return new Response(JSON.stringify({ error: "Усі поля обов'язкові" }), { status: 400 });
+      }
+
+      const existingUser = await env.DB.get(`user:${username}`);
+      if (existingUser) {
+        return new Response(JSON.stringify({ error: "Користувач вже існує" }), { status: 400 });
+      }
+
+      const passwordHash = await hashPassword(password);
+      const userData = { username, passwordHash, nickname, joinedAt: new Date().toISOString() };
+      await env.DB.put(`user:${username}`, JSON.stringify(userData));
+
+      return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+    }
+
+    // 2. Login
+    if (cleanPath === "api/auth/login" && request.method === "POST") {
+      const { username, password } = await request.json();
+      const userDataStr = await env.DB.get(`user:${username}`);
+      if (!userDataStr) {
+        return new Response(JSON.stringify({ error: "Невірний логін або пароль" }), { status: 401 });
+      }
+
+      const userData = JSON.parse(userDataStr);
+      const passwordHash = await hashPassword(password);
+      if (userData.passwordHash !== passwordHash) {
+        return new Response(JSON.stringify({ error: "Невірний логін або пароль" }), { status: 401 });
+      }
+
+      const token = crypto.randomUUID();
+      await env.DB.put(`session:${token}`, username, { expirationTtl: 86400 * 7 }); // 1 week
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: {
+          "Content-Type": "application/json",
+          "Set-Cookie": `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800`
+        }
+      });
+    }
+
+    // 3. Me (Get Profile)
+    if (cleanPath === "api/auth/me" && request.method === "GET") {
+      const token = getCookie(request, COOKIE_NAME);
+      if (!token) return new Response(JSON.stringify({ error: "Неавторизовано" }), { status: 401 });
+
+      const username = await env.DB.get(`session:${token}`);
+      if (!username) return new Response(JSON.stringify({ error: "Сесія закінчилася" }), { status: 401 });
+
+      const userDataStr = await env.DB.get(`user:${username}`);
+      const userData = JSON.parse(userDataStr);
+      delete userData.passwordHash; // Don't return password hash
+
+      return new Response(JSON.stringify(userData), { headers: { "Content-Type": "application/json" } });
+    }
+
+    // 4. Logout
+    if (cleanPath === "api/auth/logout" && request.method === "POST") {
+      const token = getCookie(request, COOKIE_NAME);
+      if (token) await env.DB.delete(`session:${token}`);
+      
+      return new Response(JSON.stringify({ success: true }), {
+        headers: {
+          "Content-Type": "application/json",
+          "Set-Cookie": `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
+        }
+      });
+    }
+
+    // 5. Update Profile
+    if (cleanPath === "api/auth/update" && request.method === "POST") {
+      const token = getCookie(request, COOKIE_NAME);
+      if (!token) return new Response(JSON.stringify({ error: "Неавторизовано" }), { status: 401 });
+
+      const username = await env.DB.get(`session:${token}`);
+      if (!username) return new Response(JSON.stringify({ error: "Сесія закінчилася" }), { status: 401 });
+
+      const { nickname, currentPassword, newPassword } = await request.json();
+      const userDataStr = await env.DB.get(`user:${username}`);
+      const userData = JSON.parse(userDataStr);
+
+      // Verify current password if changing password or nickname
+      const currentPasswordHash = await hashPassword(currentPassword);
+      if (userData.passwordHash !== currentPasswordHash) {
+        return new Response(JSON.stringify({ error: "Невірний поточний пароль" }), { status: 401 });
+      }
+
+      if (nickname) userData.nickname = nickname;
+      if (newPassword) userData.passwordHash = await hashPassword(newPassword);
+
+      await env.DB.put(`user:${username}`, JSON.stringify(userData));
+
+      return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+    }
+
+    // 6. Delete Account
+    if (cleanPath === "api/auth/delete" && request.method === "POST") {
+      const token = getCookie(request, COOKIE_NAME);
+      if (!token) return new Response(JSON.stringify({ error: "Неавторизовано" }), { status: 401 });
+
+      const username = await env.DB.get(`session:${token}`);
+      if (!username) return new Response(JSON.stringify({ error: "Сесія закінчилася" }), { status: 401 });
+
+      const { password } = await request.json();
+      const userDataStr = await env.DB.get(`user:${username}`);
+      const userData = JSON.parse(userDataStr);
+
+      const passwordHash = await hashPassword(password);
+      if (userData.passwordHash !== passwordHash) {
+        return new Response(JSON.stringify({ error: "Невірний пароль" }), { status: 401 });
+      }
+
+      await env.DB.delete(`user:${username}`);
+      await env.DB.delete(`session:${token}`);
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: {
+          "Content-Type": "application/json",
+          "Set-Cookie": `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
+        }
+      });
     }
 
     // Якщо це не API, повертаємо статичні файли
