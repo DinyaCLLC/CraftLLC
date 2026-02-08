@@ -751,98 +751,103 @@ document.addEventListener("DOMContentLoaded", () => {
             // Render Admin Panel
             const adminContainer = document.createElement('div');
             adminContainer.id = 'adminPanel';
-            adminContainer.style = 'background: #1e1e1e; padding: 25px; border-radius: 12px; margin: 30px auto; border: 1px solid #e67e22; max-width: 800px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);';
             adminContainer.innerHTML = `
-                <h2 style="color: #e67e22; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">Адмін Панель</h2>
-                <div style="margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
-                    <button id="adminMigrateBtn" style="background: #2980b9; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">Імпортувати list.json</button>
+                <h2>Адмін Панель</h2>
+                <div class="admin-controls" style="margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button id="adminMigrateBtn">Імпортувати list.json</button>
                     <input type="file" id="adminMigrateInput" accept=".json" style="display: none;">
-                    <button id="adminAddBtn" style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">+ Додати рецепт</button>
+                    <button id="adminAddBtn">+ Додати рецепт</button>
                 </div>
                 
-                <div id="adminEditor" style="display: none; background: #2b2b2b; padding: 20px; border-radius: 8px; border: 1px solid #444;">
-                    <h3 id="adminEditorTitle" style="margin-top: 0; color: #ddd;">Редагування</h3>
-                    <div style="display: grid; gap: 15px; margin-bottom: 20px;">
+                <div id="adminEditor" style="display: none;">
+                    <h3 id="adminEditorTitle">Редагування</h3>
+                    <div style="display: grid; gap: 20px; margin-bottom: 25px;">
                         <div>
-                            <label style="display: block; color: #aaa; margin-bottom: 5px;">Назва</label>
-                            <input id="editName" placeholder="Назва рецепту" style="width: 100%; box-sizing: border-box; padding: 8px; background: #141414; border: 1px solid #444; color: white;">
+                            <label>Назва</label>
+                            <input id="editName" placeholder="Назва рецепту">
                         </div>
                         
                         <div>
-                            <label style="display: block; color: #aaa; margin-bottom: 5px;">Опис</label>
-                            <textarea id="editDesc" placeholder="Опис рецепту" rows="4" style="width: 100%; box-sizing: border-box; background: #141414; color: white; border: 1px solid #444; padding: 8px;"></textarea>
+                            <label>Опис</label>
+                            <textarea id="editDesc" placeholder="Опис рецепту" rows="4"></textarea>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                             <div>
-                                <label style="display: block; color: #aaa; margin-bottom: 5px;">Тип</label>
-                                <input id="editType" placeholder="cookie, cake, pie, pudding" style="width: 100%; box-sizing: border-box; padding: 8px; background: #141414; border: 1px solid #444; color: white;">
+                                <label>Тип</label>
+                                <input id="editType" placeholder="cookie, cake, pie, pudding">
                             </div>
                             <div>
-                                <label style="display: block; color: #aaa; margin-bottom: 5px;">Дата (dd.MM.yyyy)</label>
-                                <input id="editDate" placeholder="24.08.2024" style="width: 100%; box-sizing: border-box; padding: 8px; background: #141414; border: 1px solid #444; color: white;">
+                                <label>Дата (dd.MM.yyyy)</label>
+                                <input id="editDate" placeholder="24.08.2024">
                             </div>
                         </div>
 
-                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                             <div>
-                                <label style="display: block; color: #aaa; margin-bottom: 5px;">Відео (YouTube URL або ID)</label>
-                                <input id="editVideoId" placeholder="https://youtu.be/..." style="width: 100%; box-sizing: border-box; padding: 8px; background: #141414; border: 1px solid #444; color: white;">
+                                <label>Відео (YouTube URL або ID)</label>
+                                <input id="editVideoId" placeholder="https://youtu.be/...">
                             </div>
                             <div>
-                                <label style="display: block; color: #aaa; margin-bottom: 5px;">Відео (Локальне/SRC)</label>
-                                <input id="editVideoSrc" placeholder="videos/cake.mp4" style="width: 100%; box-sizing: border-box; padding: 8px; background: #141414; border: 1px solid #444; color: white;">
+                                <label>Відео (Локальне/SRC)</label>
+                                <input id="editVideoSrc" placeholder="videos/cake.mp4">
                             </div>
                         </div>
                         
-                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                             <div>
-                                <label style="display: block; color: #aaa; margin-bottom: 5px;">Посилання на відео</label>
-                                <input id="editVideoLink" placeholder="https://youtu.be/..." style="width: 100%; box-sizing: border-box; padding: 8px; background: #141414; border: 1px solid #444; color: white;">
+                                <label>Посилання на відео</label>
+                                <input id="editVideoLink" placeholder="https://youtu.be/...">
                             </div>
                              <div style="display: flex; align-items: flex-end; padding-bottom: 10px;">
-                                <label style="color: #aaa; display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" id="editUnchecked" style="margin-right: 10px; width: 20px; height: 20px;">
+                                <label style="display: flex; align-items: center; cursor: pointer;">
+                                    <input type="checkbox" id="editUnchecked">
                                     Неперевірений рецепт
                                 </label>
                             </div>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                             <div>
-                                <label style="display: block; color: #aaa; margin-bottom: 5px;">Температура</label>
-                                <input id="editTemp" placeholder="180" style="width: 100%; box-sizing: border-box; padding: 8px; background: #141414; border: 1px solid #444; color: white;">
+                                <label>Температура</label>
+                                <input id="editTemp" placeholder="180">
                             </div>
                             <div>
-                                <label style="display: block; color: #aaa; margin-bottom: 5px;">Час</label>
-                                <input id="editTime" placeholder="30хв" style="width: 100%; box-sizing: border-box; padding: 8px; background: #141414; border: 1px solid #444; color: white;">
+                                <label>Час</label>
+                                <input id="editTime" placeholder="30хв">
                             </div>
                         </div>
 
                         <div>
-                            <label style="display: block; color: #aaa; margin-bottom: 5px;">Інгредієнти (JSON масив об'єктів)</label>
-                            <textarea id="editIngredients" rows="6" style="width: 100%; box-sizing: border-box; background: #141414; color: white; border: 1px solid #444; font-family: monospace; padding: 8px;"></textarea>
-                            <small style="color: #666;">Приклад: [{"_name": "Тісто", "борошно": "100г"}, {"цукор": "50г"}]</small>
+                            <label>Інгредієнти (JSON масив об'єктів)</label>
+                            <textarea id="editIngredients" rows="6" style="font-family: monospace;"></textarea>
+                            <small style="color: #666; display: block; margin-top: 5px;">Приклад: [{"_name": "Тісто", "борошно": "100г"}, {"цукор": "50г"}]</small>
                         </div>
                         
                         <div>
-                            <label style="display: block; color: #aaa; margin-bottom: 5px;">Ключові слова (через кому)</label>
-                            <input id="editKeywords" placeholder="солодке, випічка" style="width: 100%; box-sizing: border-box; padding: 8px; background: #141414; border: 1px solid #444; color: white;">
+                            <label>Ключові слова (через кому)</label>
+                            <input id="editKeywords" placeholder="солодке, випічка">
                         </div>
                          
                          <div>
-                            <label style="display: block; color: #aaa; margin-bottom: 5px;">Чит-код</label>
-                            <input id="editCheatCode" placeholder="SECRET123" style="width: 100%; box-sizing: border-box; padding: 8px; background: #141414; border: 1px solid #444; color: white;">
+                            <label>Чит-код</label>
+                            <input id="editCheatCode" placeholder="SECRET123">
                         </div>
                     </div>
                     
                     <div style="display: flex; gap: 15px; justify-content: flex-end;">
-                        <button id="adminCancelBtn" style="background: #7f8c8d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Скасувати</button>
-                        <button id="adminSaveBtn" style="background: #e67e22; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">Зберегти</button>
+                        <button id="adminCancelBtn">Скасувати</button>
+                        <button id="adminSaveBtn">Зберегти</button>
                     </div>
                 </div>
             `;
             
+            // Inject admin CSS dynamically
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '/static/css/admin.css';
+            document.head.appendChild(link);
+
             // Insert before filter controls
             const searchContainer = document.querySelector('.search-container');
             if (searchContainer) {
@@ -1061,11 +1066,11 @@ document.addEventListener("DOMContentLoaded", () => {
             
             cards.forEach((card, index) => {
                 const actionsDiv = document.createElement('div');
-                actionsDiv.style = "margin-top: 15px; border-top: 1px solid #444; padding-top: 10px; display: flex; gap: 10px; z-index: 20; position: relative;";
+                actionsDiv.className = 'admin-card-actions';
                 actionsDiv.innerHTML = `
-                    <button class="admin-edit-btn" style="background: #d35400; border: none; padding: 6px 12px; cursor: pointer; color: white; border-radius: 4px; font-size: 14px;">Редагувати</button>
-                    <button class="admin-delete-btn" style="background: #c0392b; border: none; padding: 6px 12px; cursor: pointer; color: white; border-radius: 4px; font-size: 14px;">Видалити</button>
-                    <div style="margin-left: auto; color: #666; font-size: 12px; align-self: center;">ID: ${index}</div>
+                    <button class="admin-edit-btn">Редагувати</button>
+                    <button class="admin-delete-btn">Видалити</button>
+                    <div class="admin-card-id">ID: ${index}</div>
                 `;
                 
                 const editBtn = actionsDiv.querySelector('.admin-edit-btn');

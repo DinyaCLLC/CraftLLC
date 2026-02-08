@@ -1,0 +1,156 @@
+/* Admin Panel Styles */
+#adminPanel {
+    background: #141414 !important; /* Matcha card background */
+    padding: 30px !important;
+    border-radius: 12px !important;
+    margin: 40px auto !important;
+    border: none !important;
+    max-width: 800px !important;
+    box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, .4) !important; /* Match card shadow */
+    font-family: inherit;
+    position: relative;
+}
+
+#adminPanel h2 {
+    color: orange !important;
+    margin-top: 0 !important;
+    margin-bottom: 25px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-bottom: 15px !important;
+    font-weight: 700 !important; /* Match card title weight */
+    font-size: 24px !important;
+}
+
+#adminPanel h3 {
+    margin-top: 0 !important;
+    color: #ddd !important;
+    font-weight: normal !important;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+#adminPanel button {
+    border: none !important;
+    padding: 10px 20px !important;
+    border-radius: 10px !important; /* Match input radius */
+    cursor: pointer !important;
+    font-weight: normal !important;
+    font-size: 16px !important;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+#adminPanel button:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+#adminMigrateBtn {
+    background: #2980b9 !important;
+    color: white !important;
+}
+
+#adminAddBtn {
+    background: #27ae60 !important;
+    color: white !important;
+}
+
+#adminSaveBtn {
+    background: #e67e22 !important; /* Orange */
+    color: white !important;
+}
+
+#adminCancelBtn {
+    background: #7f8c8d !important;
+    color: white !important;
+}
+
+#adminEditor {
+    background: #1a1a1a !important; /* Slightly lighter than panel base */
+    padding: 25px !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    margin-top: 20px;
+}
+
+#adminEditor label {
+    display: block;
+    color: #888 !important;
+    margin-bottom: 8px !important;
+    font-size: 14px;
+}
+
+#adminEditor input,
+#adminEditor textarea,
+#adminEditor select {
+    background: #0a0a0a !important; /* Darker input bg */
+    border: 1px solid #333 !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    padding: 10px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+#adminEditor input:focus,
+#adminEditor textarea:focus {
+    border-color: orange !important;
+    outline: none;
+}
+
+#adminEditor textarea {
+    resize: vertical;
+}
+
+/* Checkbox styling */
+#adminEditor input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    accent-color: orange !important;
+    margin-right: 10px !important;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+/* Edit/Delete Buttons on Cards */
+.admin-card-actions {
+    margin-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 15px;
+    display: flex;
+    gap: 10px;
+    z-index: 20;
+    position: relative;
+    align-items: center;
+}
+
+.admin-edit-btn, .admin-delete-btn {
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.admin-edit-btn {
+    background: #d35400; /* Darker orange */
+}
+.admin-edit-btn:hover {
+    background: #e67e22;
+}
+
+.admin-delete-btn {
+    background: #c0392b; /* Red */
+}
+.admin-delete-btn:hover {
+    background: #e74c3c;
+}
+
+.admin-card-id {
+    margin-left: auto;
+    color: #666;
+    font-size: 12px;
+}
