@@ -551,6 +551,12 @@ function generateRecipeCard(recipe, index) {
             ${propertiesHtml}
             ${ingredientsHtml}
         </p>
+        <div class="card__like-container">
+            <button class="card__like-btn" aria-label="Лайкнути" data-recipe-name="${recipe.name.replace(/"/g, '&quot;')}">
+                <i class="far fa-heart"></i>
+            </button>
+            <span class="card__like-count" data-recipe-name="${recipe.name.replace(/"/g, '&quot;')}">0</span>
+        </div>
     </div>
 `;
 
@@ -714,6 +720,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 displayPage(currentPage);
             }
         });
+
+        fetchLikes();
     });
 
     const isLight = urlParams.get('light') === 'true';
@@ -747,6 +755,123 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 });
+
+
+async function fetchLikes() {
+    try {
+        const response = await fetch('/api/recipes/likes-data');
+        if (!response.ok) return;
+        const data = await response.json();
+        const { userLikes, counts, isAuthenticated } = data;
+
+        const allCards = document.querySelectorAll('.card');
+        
+
+
+        allCards.forEach(card => {
+            const btn = card.querySelector('.card__like-btn');
+            const countSpan = card.querySelector('.card__like-count');
+            
+            if (!btn || !countSpan) return;
+
+            let recipeName = btn.getAttribute('data-recipe-name');
+            
+            // Initial render
+            const count = counts[recipeName] || 0;
+            countSpan.textContent = count;
+
+            if (isAuthenticated) {
+                if (userLikes.includes(recipeName)) {
+                    btn.classList.add('liked');
+                    btn.querySelector('i').className = 'fas fa-heart';
+                    btn.setAttribute('aria-label', 'Прибрати лайк');
+                } else {
+                    btn.classList.remove('liked');
+                    btn.querySelector('i').className = 'far fa-heart';
+                    btn.setAttribute('aria-label', 'Лайкнути');
+                }
+
+                // Remove old listeners to prevent duplicates if called multiple times
+                // Cloning the node is a brute force way to remove listeners
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                
+                newBtn.onclick = async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Read current state from DOM
+                    const isLikedNow = newBtn.classList.contains('liked');
+                    const newLikedState = !isLikedNow;
+                    
+                    // Optimistic UI update
+                    const icon = newBtn.querySelector('i');
+                    if (newLikedState) {
+                        newBtn.classList.add('liked');
+                        icon.className = 'fas fa-heart';
+                        countSpan.textContent = parseInt(countSpan.textContent) + 1;
+                        newBtn.setAttribute('aria-label', 'Прибрати лайк');
+                    } else {
+                        newBtn.classList.remove('liked');
+                        icon.className = 'far fa-heart';
+                        countSpan.textContent = Math.max(0, parseInt(countSpan.textContent) - 1);
+                        newBtn.setAttribute('aria-label', 'Лайкнути');
+                    }
+
+                    try {
+                        const res = await fetch('/api/recipes/like', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ recipeName })
+                        });
+                        const resData = await res.json();
+                        if (resData.success) {
+                            countSpan.textContent = resData.newCount;
+                        } else {
+                            // Revert
+                            if (!newLikedState) {
+                                newBtn.classList.add('liked');
+                                icon.className = 'fas fa-heart';
+                                countSpan.textContent = parseInt(countSpan.textContent) + 1;
+                            } else {
+                                newBtn.classList.remove('liked');
+                                icon.className = 'far fa-heart';
+                                countSpan.textContent = Math.max(0, parseInt(countSpan.textContent) - 1);
+                            }
+                        }
+                    } catch (err) {
+                        // Revert
+                        if (!newLikedState) {
+                            newBtn.classList.add('liked');
+                            icon.className = 'fas fa-heart';
+                            countSpan.textContent = parseInt(countSpan.textContent) + 1;
+                        } else {
+                            newBtn.classList.remove('liked');
+                            icon.className = 'far fa-heart';
+                            countSpan.textContent = Math.max(0, parseInt(countSpan.textContent) - 1);
+                        }
+                    }
+                };
+            } else {
+                 // Not authenticated interactive check
+                 const newBtn = btn.cloneNode(true);
+                 btn.parentNode.replaceChild(newBtn, btn);
+
+                 newBtn.style.cursor = 'pointer';
+                 newBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (confirm("Будь ласка, увійдіть в акаунт, щоб лайкати рецепти! Перейти на сторінку входу?")) {
+                         window.location.href = '/account';
+                    }
+                 };
+            }
+        });
+
+    } catch (e) {
+        console.error("Failed to fetch likes", e);
+    }
+}
 
 // Clear all intervals when the page is unloaded to prevent memory leaks
 window.addEventListener('beforeunload', () => {

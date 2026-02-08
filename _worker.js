@@ -202,6 +202,80 @@ export default {
       });
     }
 
+    // --- API: Likes ---
+    // 7. Get Likes Data
+    if (cleanPath === "api/recipes/likes-data" && request.method === "GET") {
+      const token = getCookie(request, COOKIE_NAME);
+      let userLikes = [];
+      let isAuthenticated = false;
+      
+      if (token) {
+        const username = await env.DB.get(`session:${token}`);
+        if (username) {
+           isAuthenticated = true;
+           const userLikesStr = await env.DB.get(`user_likes:${username}`);
+           userLikes = userLikesStr ? JSON.parse(userLikesStr) : [];
+        }
+      }
+
+      const globalCountsStr = await env.DB.get('global_likes_counts');
+      const counts = globalCountsStr ? JSON.parse(globalCountsStr) : {};
+
+      return new Response(JSON.stringify({ userLikes, counts, isAuthenticated }), {
+        headers: { 
+          "Content-Type": "application/json",
+          ...corsHeaders
+        }
+      });
+    }
+
+    // 8. Toggle Like
+    if (cleanPath === "api/recipes/like" && request.method === "POST") {
+      const token = getCookie(request, COOKIE_NAME);
+      if (!token) return new Response(JSON.stringify({ error: "Неавторизовано" }), { status: 401 });
+
+      const username = await env.DB.get(`session:${token}`);
+      if (!username) return new Response(JSON.stringify({ error: "Сесія закінчилася" }), { status: 401 });
+
+      const { recipeName } = await request.json();
+      if (!recipeName) return new Response(JSON.stringify({ error: "Не вказано назву рецепту" }), { status: 400 });
+
+      // Update User Likes
+      const userLikesStr = await env.DB.get(`user_likes:${username}`);
+      let userLikes = userLikesStr ? JSON.parse(userLikesStr) : [];
+      let isLiked = false;
+
+      if (userLikes.includes(recipeName)) {
+        userLikes = userLikes.filter(n => n !== recipeName);
+        isLiked = false;
+      } else {
+        userLikes.push(recipeName);
+        isLiked = true;
+      }
+      await env.DB.put(`user_likes:${username}`, JSON.stringify(userLikes));
+
+      // Update Global Counts
+      const globalCountsStr = await env.DB.get('global_likes_counts');
+      let counts = globalCountsStr ? JSON.parse(globalCountsStr) : {};
+      
+      if (counts[recipeName] === undefined) counts[recipeName] = 0;
+      
+      if (isLiked) {
+        counts[recipeName]++;
+      } else {
+        counts[recipeName] = Math.max(0, counts[recipeName] - 1);
+      }
+      
+      await env.DB.put('global_likes_counts', JSON.stringify(counts));
+
+      return new Response(JSON.stringify({ success: true, isLiked, newCount: counts[recipeName] }), {
+         headers: { 
+          "Content-Type": "application/json",
+          ...corsHeaders
+        }
+      });
+    }
+
     // Якщо це не API, повертаємо статичні файли
     return env.ASSETS.fetch(request);
   },
