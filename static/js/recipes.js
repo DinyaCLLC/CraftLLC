@@ -587,8 +587,13 @@ function generateRecipeCard(recipe, index) {
 }
 
 async function loadRecipes() {
-    const response = await fetch('/recipes/list.json');
-    const recipes = await response.json();
+    const response = await fetch('/api/recipes');
+    let recipes = [];
+    try {
+        recipes = await response.json();
+    } catch (e) {
+        console.error("Failed to parse recipes JSON", e);
+    }
     const recipesContainer = document.getElementById('recipesContainer');
 
     recipes.forEach((recipe, index) => {
