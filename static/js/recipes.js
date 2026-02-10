@@ -842,12 +842,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `;
             
-            // Inject admin CSS dynamically
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = '/static/css/admin.css';
-            document.head.appendChild(link);
-
             // Insert before filter controls
             const searchContainer = document.querySelector('.search-container');
             if (searchContainer) {

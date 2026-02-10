@@ -253,3 +253,166 @@ select {
         font-size: 0.6em;
     }
 }
+
+/* --- Admin Panel Styles --- */
+#adminPanel {
+    background-color: #141414; /* Same as .card */
+    padding: 30px;
+    border-radius: 12px;
+    margin: 20px auto; /* Match .card margin */
+    width: 90%; /* Match search inputs width */
+    max-width: 800px;
+    box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, .4); /* Same as .card */
+    position: relative;
+    text-align: left; /* Admin panel should be left-aligned for data entry */
+}
+
+#adminPanel h2 {
+    color: orange;
+    margin-top: 0;
+    margin-bottom: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+    font-weight: 700;
+    font-size: 24px;
+}
+
+#adminPanel h3 {
+    margin-top: 0;
+    color: #ddd;
+    font-weight: normal;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+#adminPanel button {
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px; /* Same as input/select */
+    cursor: pointer;
+    font-size: 16px;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+#adminPanel button:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+#adminMigrateBtn {
+    background: #2980b9;
+    color: white;
+}
+
+#adminAddBtn {
+    background: linear-gradient(to right, #FFA600, #FFBB00);
+    color: black;
+}
+
+#adminSaveBtn {
+    background: linear-gradient(to right, #FFA600, #FFBB00);
+    color: black;
+}
+
+#adminCancelBtn {
+    background: #7f8c8d;
+    color: white;
+}
+
+#adminEditor {
+    background: #1a1a1a;
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 20px;
+}
+
+#adminEditor label {
+    display: block;
+    color: #888;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+/* Reuse existing input styles, but ensure specificity */
+#adminEditor input,
+#adminEditor textarea,
+#adminEditor select {
+    background-color: #0a0a0a;
+    color: white;
+    width: 100%;
+    height: auto; /* Allow auto height for textarea */
+    min-height: 40px; /* Base height for inputs */
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+    font-size: 16px;
+    margin-bottom: 0; /* Override generic input margin if needed */
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+#adminEditor input:focus,
+#adminEditor textarea:focus {
+    border-color: orange;
+    outline: none;
+}
+
+#adminEditor textarea {
+    resize: vertical;
+}
+
+/* Checkbox specific override */
+#adminEditor input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: orange;
+    margin-right: 10px;
+    cursor: pointer;
+    vertical-align: middle;
+    min-height: auto;
+}
+
+/* Admin Card Actions */
+.admin-card-actions {
+    margin-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 15px;
+    display: flex;
+    gap: 10px;
+    z-index: 20;
+    position: relative;
+    align-items: center;
+}
+
+.admin-edit-btn, .admin-delete-btn {
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.admin-edit-btn {
+    background: linear-gradient(to right, #FFA600, #FFBB00);
+    color: black;
+}
+.admin-edit-btn:hover {
+    opacity: 0.9;
+}
+
+.admin-delete-btn {
+    background: #c0392b;
+}
+.admin-delete-btn:hover {
+    background: #e74c3c;
+}
+
+.admin-card-id {
+    margin-left: auto;
+    color: #666;
+    font-size: 12px;
+}
