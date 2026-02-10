@@ -12,12 +12,4 @@
         <loc>https://craftllc.pages.dev/recipes</loc>
         <priority>1.0</priority>
     </url>
-    <url>
-        <loc>https://craftllc.pages.dev/craftantivirus</loc>
-        <priority>0.01</priority>
-    </url>
-    <url>
-        <loc>https://craftllc.pages.dev/fastai</loc>
-        <priority>0.7</priority>
-    </url>
 </urlset>
