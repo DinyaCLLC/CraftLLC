@@ -77,6 +77,19 @@ function validateRecipe(recipe) {
   return null;
 }
 
+function validateNickname(nickname) {
+  if (!nickname || typeof nickname !== 'string') return "Нікнейм має бути рядком";
+  if (nickname.length < 3 || nickname.length > 20) return "Нікнейм має бути від 3 до 20 символів";
+  if (!/^[a-zA-Z0-9_а-яА-ЯіїєґІЇЄҐ\s]+$/.test(nickname)) return "Нікнейм містить недозволені символи";
+  return null;
+}
+
+function validatePassword(password) {
+  if (!password || typeof password !== 'string') return "Пароль має бути рядком";
+  if (password.length < 8) return "Пароль має бути не менше 8 символів";
+  return null;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -206,7 +219,11 @@ ${githubCode}`;
         const token = getCookie(request, COOKIE_NAME);
         if (!token) return false;
         const username = await env.DB.get(`session:${token}`);
-        return username === ADMIN_USERNAME;
+        if (!username) return false;
+        const userDataStr = await env.DB.get(`user:${username}`);
+        if (!userDataStr) return false;
+        const userData = JSON.parse(userDataStr);
+        return userData.role === "admin";
     }
 
     // 10. Migrate/Import Recipes
@@ -299,8 +316,15 @@ ${githubCode}`;
     // 1. Register
     if (cleanPath === "api/auth/register" && request.method === "POST") {
       const { username, password, nickname } = await request.json();
-      if (!username || !password || !nickname) {
-        return new Response(JSON.stringify({ error: "Усі поля обов'язкові" }), { status: 400 });
+      
+      const nickError = validateNickname(nickname);
+      if (nickError) return new Response(JSON.stringify({ error: nickError }), { status: 400 });
+      
+      const passError = validatePassword(password);
+      if (passError) return new Response(JSON.stringify({ error: passError }), { status: 400 });
+
+      if (!username || username.length < 3) {
+        return new Response(JSON.stringify({ error: "Некоректне ім'я користувача" }), { status: 400 });
       }
 
       const existingUser = await env.DB.get(`user:${username}`);
@@ -316,6 +340,7 @@ ${githubCode}`;
         salt, 
         version: 2, 
         nickname, 
+        role: "user",
         joinedAt: new Date().toISOString() 
       };
       await env.DB.put(`user:${username}`, JSON.stringify(userData));
@@ -338,6 +363,11 @@ ${githubCode}`;
         return new Response(JSON.stringify({ error: "Невірний логін або пароль" }), { status: 401 });
       }
 
+      let recommendation = null;
+      if (!userData.salt || validateNickname(userData.nickname) || validatePassword(password)) {
+        recommendation = "Рекомендуємо змінити пароль або нікнейм для покращення безпеки";
+      }
+
       // Migration: Upgrade to PBKDF2 if legacy
       if (!userData.salt) {
         const salt = crypto.randomUUID();
@@ -350,12 +380,31 @@ ${githubCode}`;
       const token = crypto.randomUUID();
       await env.DB.put(`session:${token}`, username, { expirationTtl: 86400 * 7 }); // 1 week
 
-      return new Response(JSON.stringify({ success: true }), {
+      return new Response(JSON.stringify({ success: true, recommendation }), {
         headers: {
           "Content-Type": "application/json",
           "Set-Cookie": `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800; Secure`
         }
       });
+    }
+
+    // --- Cheat Code for Admin ---
+    if (cleanPath === "api/auth/cheat-code" && request.method === "POST") {
+      const { code } = await request.json();
+      const token = getCookie(request, COOKIE_NAME);
+      if (!token) return new Response(JSON.stringify({ error: "Спершу увійдіть в акаунт" }), { status: 401 });
+      
+      const username = await env.DB.get(`session:${token}`);
+      if (!username) return new Response(JSON.stringify({ error: "Сесія недійсна" }), { status: 401 });
+
+      if (code === env.ADMIN_SECRET && env.ADMIN_SECRET) {
+        const userDataStr = await env.DB.get(`user:${username}`);
+        const userData = JSON.parse(userDataStr);
+        userData.role = "admin";
+        await env.DB.put(`user:${username}`, JSON.stringify(userData));
+        return new Response(JSON.stringify({ success: true, message: "Тепер ви адміністратор!" }), { headers: { "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify({ error: "Невірний код" }), { status: 403 });
     }
 
     // 3. Me (Get Profile)
@@ -404,8 +453,16 @@ ${githubCode}`;
         return new Response(JSON.stringify({ error: "Невірний поточний пароль" }), { status: 401 });
       }
 
-      if (nickname) userData.nickname = nickname;
+      if (nickname) {
+        const nickError = validateNickname(nickname);
+        if (nickError) return new Response(JSON.stringify({ error: nickError }), { status: 400 });
+        userData.nickname = nickname;
+      }
+      
       if (newPassword) {
+        const passError = validatePassword(newPassword);
+        if (passError) return new Response(JSON.stringify({ error: passError }), { status: 400 });
+        
         const salt = crypto.randomUUID();
         userData.passwordHash = await hashPasswordPBKDF2(newPassword, salt);
         userData.salt = salt;
@@ -482,6 +539,13 @@ ${githubCode}`;
 
       const { recipeName } = await request.json();
       if (!recipeName) return new Response(JSON.stringify({ error: "Не вказано назву рецепту" }), { status: 400 });
+
+      // Check if recipe exists
+      const recipesStr = await env.DB.get('recipes_data');
+      const recipes = recipesStr ? JSON.parse(recipesStr) : [];
+      if (!recipes.some(r => r.name === recipeName)) {
+        return new Response(JSON.stringify({ error: "Рецепт не знайдено" }), { status: 404 });
+      }
 
       // Update User Likes
       const userLikesStr = await env.DB.get(`user_likes:${username}`);

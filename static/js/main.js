@@ -14,6 +14,23 @@ document.addEventListener("DOMContentLoaded", () => {
             menuToggle.setAttribute('aria-expanded', !isExpanded);
         });
     }
+
+    // Cookie Consent Logic
+    if (!localStorage.getItem('cookie-consent')) {
+        const banner = document.createElement('div');
+        banner.id = 'cookie-banner';
+        banner.innerHTML = `
+            <p>Цей сайт використовує cookies для автентифікації та покращення роботи сайту. 
+            Продовжуючи користування, ви погоджуєтесь з нашою <a href="/privacy">політикою</a>.</p>
+            <button class="cookie-btn">Зрозуміло</button>
+        `;
+        document.body.appendChild(banner);
+
+        banner.querySelector('.cookie-btn').addEventListener('click', () => {
+            localStorage.setItem('cookie-consent', 'true');
+            banner.remove();
+        });
+    }
 });
 
 document.addEventListener("DOMContentLoaded", () => {

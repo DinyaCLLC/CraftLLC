@@ -181,6 +181,9 @@
             
             const data = await res.json();
             if (res.ok) {
+                if (data.recommendation) {
+                    alert(data.recommendation);
+                }
                 location.reload();
             } else {
                 showMsg('authMessage', data.error || 'Помилка входу', true);
