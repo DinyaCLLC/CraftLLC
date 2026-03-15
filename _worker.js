@@ -8,6 +8,56 @@ async function hashPassword(password) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+async function hashPasswordPBKDF2(password, salt) {
+  const encoder = new TextEncoder();
+  const passwordData = encoder.encode(password);
+  const saltData = encoder.encode(salt);
+  
+  const baseKey = await crypto.subtle.importKey(
+    'raw', 
+    passwordData, 
+    { name: 'PBKDF2' }, 
+    false, 
+    ['deriveBits']
+  );
+  
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: saltData,
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    baseKey,
+    256
+  );
+  
+  return Array.from(new Uint8Array(derivedBits))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+async function verifyPassword(password, userData) {
+  if (userData.salt) {
+    const hash = await hashPasswordPBKDF2(password, userData.salt);
+    return constantTimeCompare(userData.passwordHash, hash);
+  } else {
+    // Legacy SHA-256
+    const hash = await hashPassword(password);
+    return constantTimeCompare(userData.passwordHash, hash);
+  }
+}
+
+function constantTimeCompare(val1, val2) {
+  if (typeof val1 !== 'string' || typeof val2 !== 'string') return false;
+  if (val1.length !== val2.length) return false;
+  let result = 0;
+  for (let i = 0; i < val1.length; i++) {
+    result |= val1.charCodeAt(i) ^ val2.charCodeAt(i);
+  }
+  return result === 0;
+}
+
 function getCookie(request, name) {
   const cookieString = request.headers.get("Cookie");
   if (!cookieString) return null;
@@ -20,6 +70,13 @@ function getCookie(request, name) {
   return null;
 }
 
+function validateRecipe(recipe) {
+  if (!recipe || typeof recipe !== 'object') return "Некоректні дані";
+  if (!recipe.name || typeof recipe.name !== 'string' || recipe.name.length < 2 || recipe.name.length > 100) return "Назва має бути від 2 до 100 символів";
+  if (!recipe.description || typeof recipe.description !== 'string' || recipe.description.length > 5000) return "Опис занадто довгий";
+  return null;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -27,7 +84,7 @@ export default {
 
     // CORS Headers
     const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": "https://craftllc.pages.dev",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     };
@@ -174,6 +231,9 @@ ${githubCode}`;
         
         try {
             const newRecipe = await request.json();
+            const validationError = validateRecipe(newRecipe);
+            if (validationError) return new Response(JSON.stringify({ error: validationError }), { status: 400 });
+
             const recipesStr = await env.DB.get('recipes_data');
             let recipes = recipesStr ? JSON.parse(recipesStr) : [];
             
@@ -193,6 +253,9 @@ ${githubCode}`;
         
         try {
             const { index, recipe } = await request.json();
+            const validationError = validateRecipe(recipe);
+            if (validationError) return new Response(JSON.stringify({ error: validationError }), { status: 400 });
+
             const recipesStr = await env.DB.get('recipes_data');
             let recipes = recipesStr ? JSON.parse(recipesStr) : [];
             
@@ -245,8 +308,16 @@ ${githubCode}`;
         return new Response(JSON.stringify({ error: "Користувач вже існує" }), { status: 400 });
       }
 
-      const passwordHash = await hashPassword(password);
-      const userData = { username, passwordHash, nickname, joinedAt: new Date().toISOString() };
+      const salt = crypto.randomUUID();
+      const passwordHash = await hashPasswordPBKDF2(password, salt);
+      const userData = { 
+        username, 
+        passwordHash, 
+        salt, 
+        version: 2, 
+        nickname, 
+        joinedAt: new Date().toISOString() 
+      };
       await env.DB.put(`user:${username}`, JSON.stringify(userData));
 
       return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
@@ -261,9 +332,19 @@ ${githubCode}`;
       }
 
       const userData = JSON.parse(userDataStr);
-      const passwordHash = await hashPassword(password);
-      if (userData.passwordHash !== passwordHash) {
+      const isCorrect = await verifyPassword(password, userData);
+      
+      if (!isCorrect) {
         return new Response(JSON.stringify({ error: "Невірний логін або пароль" }), { status: 401 });
+      }
+
+      // Migration: Upgrade to PBKDF2 if legacy
+      if (!userData.salt) {
+        const salt = crypto.randomUUID();
+        userData.passwordHash = await hashPasswordPBKDF2(password, salt);
+        userData.salt = salt;
+        userData.version = 2;
+        await env.DB.put(`user:${username}`, JSON.stringify(userData));
       }
 
       const token = crypto.randomUUID();
@@ -272,7 +353,7 @@ ${githubCode}`;
       return new Response(JSON.stringify({ success: true }), {
         headers: {
           "Content-Type": "application/json",
-          "Set-Cookie": `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800`
+          "Set-Cookie": `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800; Secure`
         }
       });
     }
@@ -300,7 +381,7 @@ ${githubCode}`;
       return new Response(JSON.stringify({ success: true }), {
         headers: {
           "Content-Type": "application/json",
-          "Set-Cookie": `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
+          "Set-Cookie": `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Secure`
         }
       });
     }
@@ -317,14 +398,19 @@ ${githubCode}`;
       const userDataStr = await env.DB.get(`user:${username}`);
       const userData = JSON.parse(userDataStr);
 
-      // Verify current password if changing password or nickname
-      const currentPasswordHash = await hashPassword(currentPassword);
-      if (userData.passwordHash !== currentPasswordHash) {
+      // Verify current password
+      const isCorrect = await verifyPassword(currentPassword, userData);
+      if (!isCorrect) {
         return new Response(JSON.stringify({ error: "Невірний поточний пароль" }), { status: 401 });
       }
 
       if (nickname) userData.nickname = nickname;
-      if (newPassword) userData.passwordHash = await hashPassword(newPassword);
+      if (newPassword) {
+        const salt = crypto.randomUUID();
+        userData.passwordHash = await hashPasswordPBKDF2(newPassword, salt);
+        userData.salt = salt;
+        userData.version = 2;
+      }
 
       await env.DB.put(`user:${username}`, JSON.stringify(userData));
 
@@ -343,8 +429,8 @@ ${githubCode}`;
       const userDataStr = await env.DB.get(`user:${username}`);
       const userData = JSON.parse(userDataStr);
 
-      const passwordHash = await hashPassword(password);
-      if (userData.passwordHash !== passwordHash) {
+      const isCorrect = await verifyPassword(password, userData);
+      if (!isCorrect) {
         return new Response(JSON.stringify({ error: "Невірний пароль" }), { status: 401 });
       }
 
@@ -354,7 +440,7 @@ ${githubCode}`;
       return new Response(JSON.stringify({ success: true }), {
         headers: {
           "Content-Type": "application/json",
-          "Set-Cookie": `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
+          "Set-Cookie": `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Secure`
         }
       });
     }
