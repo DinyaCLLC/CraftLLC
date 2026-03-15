@@ -23,7 +23,14 @@ body::before {
     transform: scale(1.1); /* Запобігає білим краям при розмитті */
 }
 
+body.main-page-view {
+    background: transparent !important;
+    padding-top: 0;
+}
 
+body.main-page-view::before {
+    display: none;
+}
 
 button {
     background: linear-gradient(to right, #FFA600, #FFBB00);
@@ -49,23 +56,6 @@ p {
 a {
     text-decoration: none;
     color: white;
-}
-
-.card {
-    background-color: #141414;
-    border-radius: 12px;
-    padding: 40px;
-    box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.4);
-    margin-bottom: 30px;
-    text-align: left;
-}
-
-
-.card h2 {
-    color: #ffa516;
-    margin-top: 0;
-    font-size: 21px;
-    font-weight: 700;
 }
 
 iframe {
@@ -263,63 +253,5 @@ footer .copyright {
     /* Прибираємо нижню межу на останньому елементі */
     .nav-menu li:last-child a {
         border-bottom: none;
-    }
-}
-
-/* Cookie Consent Banner */
-#cookie-banner {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1a1a1a;
-    color: white;
-    padding: 15px 25px;
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-    z-index: 10001;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    width: 90%;
-    max-width: 600px;
-    border: 1px solid #333;
-}
-
-#cookie-banner p {
-    margin: 0;
-    font-size: 0.9rem;
-    text-align: left;
-    flex: 1;
-}
-
-#cookie-banner a {
-    color: #ffa516;
-    text-decoration: underline;
-}
-
-.cookie-btn {
-    background: #ffa516;
-    color: black;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    width: auto;
-    height: auto;
-}
-
-.cookie-btn:hover {
-    background: #ffb74d;
-}
-
-@media (max-width: 600px) {
-    #cookie-banner {
-        flex-direction: column;
-        text-align: center;
-    }
-    #cookie-banner p {
-        text-align: center;
     }
 }

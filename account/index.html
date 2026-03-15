@@ -119,18 +119,6 @@
         <div class="loader"></div>
     </div>
 
-    <footer id="footerID">
-        <div class="social">
-            <a href="https://t.me/CraftLLC" target="_blank"><i class="fab fa-telegram"></i></a>
-            <a href="https://m.youtube.com/@CraftLLCOF" target="_blank"><i class="fab fa-youtube"></i></a>
-            <a href="https://github.com/CraftLLC" target="_blank"><i class="fab fa-github"></i></a>
-            <a href="https://x.com/NotCraftLLC" target="_blank"><i class="fab fa-x-twitter"></i></a>
-            <a href="https://instagram.com/CraftLLC" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-        <p><a href="/privacy" style="color: #aaa; font-size: 13px; text-decoration: underline;">Політика конфіденційності</a></p>
-        <p class="copyright">© Андрій Рудик 2024-2025</p>
-    </footer>
-
     <script src="/static/js/main.js"></script>
     <script>
         async function fetchMe() {
@@ -193,9 +181,6 @@
             
             const data = await res.json();
             if (res.ok) {
-                if (data.recommendation) {
-                    alert(data.recommendation);
-                }
                 location.reload();
             } else {
                 showMsg('authMessage', data.error || 'Помилка входу', true);

@@ -609,6 +609,14 @@ async function loadRecipes() {
 
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
+    const isMainPageView = urlParams.get('mainPageView') === 'true';
+
+    if (isMainPageView) {
+        const loader = document.getElementById('loader-wrapper');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    } else {
         // If not in iframe, add the cheat code modal
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = `
@@ -698,6 +706,7 @@ document.addEventListener("DOMContentLoaded", () => {
         closeActiveCheatCodesModal.addEventListener('click', () => {
             activeCheatCodesModal.style.display = 'none';
         });
+    }
 
     console.log("DOMContentLoaded event fired.");
     const searchInput = document.getElementById('recipeSearch');
