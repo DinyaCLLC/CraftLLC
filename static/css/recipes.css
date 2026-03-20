@@ -91,7 +91,6 @@ input {
 .card__like-btn {
     background: none;
     border: none;
-    cursor: pointer;
     font-size: 24px;
     color: #888;
     transition: color 0.3s, transform 0.2s;
@@ -144,7 +143,6 @@ select {
     padding: 0 10px;
     background-color: #141414;
     color: white;
-    cursor: pointer;
 }
 
 .card[data-recipeunchecked]::before {
@@ -175,7 +173,6 @@ select {
     padding: 10px 20px;
     margin: 0 10px;
     border-radius: 8px;
-    cursor: pointer;
     font-size: 16px;
 }
 
@@ -288,7 +285,6 @@ select {
     border: none;
     padding: 10px 20px;
     border-radius: 10px; /* Same as input/select */
-    cursor: pointer;
     font-size: 16px;
     transition: transform 0.2s, opacity 0.2s;
 }
@@ -368,7 +364,6 @@ select {
     height: 20px;
     accent-color: orange;
     margin-right: 10px;
-    cursor: pointer;
     vertical-align: middle;
     min-height: auto;
 }
@@ -388,7 +383,6 @@ select {
 .admin-edit-btn, .admin-delete-btn {
     border: none;
     padding: 8px 16px;
-    cursor: pointer;
     color: white;
     border-radius: 8px;
     font-size: 14px;

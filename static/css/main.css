@@ -6,7 +6,7 @@ body {
     text-align: center;
     margin: 0;
     padding-top: 70px;
-    cursor: url('/static/img/cursor.svg') 64 64, auto;
+    cursor: url('/static/img/cursor.svg') 16 16, auto;
 }
 
 body::before {
@@ -39,7 +39,6 @@ button {
     height: 45px;
     border-radius: 10px;
     border: none;
-    cursor: pointer;
     font-size: 16px;
     color: black;
     /* Додано для видимості тексту на кнопці */
@@ -150,7 +149,6 @@ header {
     border: none;
     color: white;
     font-size: 24px;
-    cursor: pointer;
 }
 
 .menu-toggle i {
