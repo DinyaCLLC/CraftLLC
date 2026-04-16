@@ -920,63 +920,93 @@ document.addEventListener("DOMContentLoaded", () => {
                 reader.readAsText(file);
             };
 
+            // DB Management Elements
+            const typeEl = adminContainer.querySelector('#dbTypeStatus');
+            const migrateBtn = adminContainer.querySelector('#dbMigrateD1Btn');
+            const switchBtn = adminContainer.querySelector('#dbSwitchBtn');
+            const exportBtn = adminContainer.querySelector('#dbExportBtn');
+            const importBtn = adminContainer.querySelector('#dbImportBtn');
+            const importInput = adminContainer.querySelector('#dbImportInput');
+
             // DB Management Logic
             async function updateDBStatus() {
-                const res = await fetch('/api/admin/db/status', { credentials: 'include' });
-                if (!res.ok) return;
-                const status = await res.json();
-                
-                const typeEl = document.getElementById('dbTypeStatus');
-                const migrateBtn = document.getElementById('dbMigrateD1Btn');
-                const switchBtn = document.getElementById('dbSwitchBtn');
-                
-                typeEl.textContent = status.type.toUpperCase() + (status.d1_available ? " (D1 доступна)" : "");
-                
-                if (status.d1_available) {
-                    migrateBtn.style.display = 'inline-block';
-                    switchBtn.style.display = 'inline-block';
-                    switchBtn.textContent = status.type === 'kv' ? 'Перейти на D1' : 'Повернутись на KV';
-                    switchBtn.onclick = async () => {
-                        const newType = status.type === 'kv' ? 'd1' : 'kv';
-                        if (!confirm(`Перемкнути базу даних на ${newType.toUpperCase()}?`)) return;
-                        
-                        const sRes = await fetch('/api/admin/db/switch', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ type: newType }),
-                            credentials: 'include'
-                        });
-                        if (sRes.ok) {
-                            alert('Тип БД змінено!');
-                            location.reload();
-                        }
-                    };
+                try {
+                    const res = await fetch('/api/admin/db/status', { credentials: 'include' });
+                    if (!res.ok) throw new Error('Failed to fetch status');
+                    const status = await res.json();
                     
-                    migrateBtn.onclick = async () => {
-                        if (!confirm('Ви впевнені, що хочете скопіювати всі дані з KV в D1? Це перезапише існуючі дані в D1.')) return;
-                        migrateBtn.disabled = true;
-                        migrateBtn.textContent = 'Міграція...';
-                        const mRes = await fetch('/api/admin/db/migrate', { 
-                            method: 'POST',
-                            credentials: 'include'
-                        });
-                        if (mRes.ok) {
-                            alert('Дані успішно мігровано в D1!');
-                        } else {
-                            alert('Помилка міграції: ' + await mRes.text());
-                        }
-                        migrateBtn.disabled = false;
-                        migrateBtn.textContent = 'Міграція в D1';
-                    };
+                    typeEl.textContent = status.type.toUpperCase() + (status.d1_available ? " (D1 доступна)" : " (тільки KV)");
+                    
+                    if (status.d1_available) {
+                        migrateBtn.style.display = 'inline-block';
+                        switchBtn.style.display = 'inline-block';
+                        switchBtn.textContent = status.type === 'kv' ? 'Перейти на D1' : 'Повернутись на KV';
+                        switchBtn.dataset.type = status.type;
+                    }
+                } catch (err) {
+                    typeEl.textContent = "Помилка завантаження статусу";
                 }
             }
             updateDBStatus();
 
-            document.getElementById('dbExportBtn').onclick = async () => {
-                const btn = document.getElementById('dbExportBtn');
-                const originalText = btn.textContent;
-                btn.disabled = true;
-                btn.textContent = 'Експорт...';
+            switchBtn.onclick = async () => {
+                const currentType = switchBtn.dataset.type || 'kv';
+                const newType = currentType === 'kv' ? 'd1' : 'kv';
+                if (!confirm(`Перемкнути базу даних на ${newType.toUpperCase()}?`)) return;
+                
+                switchBtn.disabled = true;
+                const originalText = switchBtn.textContent;
+                switchBtn.textContent = 'Перемикання...';
+                
+                try {
+                    const sRes = await fetch('/api/admin/db/switch', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ type: newType }),
+                        credentials: 'include'
+                    });
+                    if (sRes.ok) {
+                        alert('Тип БД змінено!');
+                        location.reload();
+                    } else {
+                        alert('Помилка при зміні типу БД');
+                    }
+                } catch (err) {
+                    alert('Помилка запиту: ' + err.message);
+                } finally {
+                    switchBtn.disabled = false;
+                    switchBtn.textContent = originalText;
+                }
+            };
+            
+            migrateBtn.onclick = async () => {
+                if (!confirm('Ви впевнені, що хочете скопіювати всі дані з KV в D1? Це перезапише існуючі дані в D1.')) return;
+                migrateBtn.disabled = true;
+                const originalText = migrateBtn.textContent;
+                migrateBtn.textContent = 'Міграція...';
+                try {
+                    const mRes = await fetch('/api/admin/db/migrate', { 
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    if (mRes.ok) {
+                        const data = await mRes.json();
+                        alert(`Дані успішно мігровано в D1! Перенесено записів: ${data.migrated || 0}`);
+                    } else {
+                        alert('Помилка міграції: ' + await mRes.text());
+                    }
+                } catch (err) {
+                    alert('Помилка запиту: ' + err.message);
+                } finally {
+                    migrateBtn.disabled = false;
+                    migrateBtn.textContent = originalText;
+                }
+            };
+
+            exportBtn.onclick = async () => {
+                const originalText = exportBtn.textContent;
+                exportBtn.disabled = true;
+                exportBtn.textContent = 'Експорт...';
                 
                 try {
                     const res = await fetch('/api/admin/db/export', { credentials: 'include' });
@@ -997,23 +1027,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (err) {
                     alert('Помилка при експорті: ' + err.message);
                 } finally {
-                    btn.disabled = false;
-                    btn.textContent = originalText;
+                    exportBtn.disabled = false;
+                    exportBtn.textContent = originalText;
                 }
             };
 
-            document.getElementById('dbImportBtn').onclick = () => {
-                document.getElementById('dbImportInput').click();
+            importBtn.onclick = () => {
+                importInput.click();
             };
 
-            document.getElementById('dbImportInput').onchange = async (e) => {
+            importInput.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
                 reader.onload = async (ev) => {
                     try {
                         const json = JSON.parse(ev.target.result);
-                        if (!confirm('Ви впевнені, що хочете імпортувати ці дані? Це перезапише поточну базу!')) return;
+                        if (!confirm('Ви впевнені, що хочете імпортувати ці дані? Це перезапише поточну активну базу!')) return;
+                        
+                        importBtn.disabled = true;
+                        importBtn.textContent = 'Імпорт...';
                         
                         const iRes = await fetch('/api/admin/db/import', {
                             method: 'POST',
@@ -1029,6 +1062,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     } catch (err) {
                         alert('Невалідний JSON');
+                    } finally {
+                        importBtn.disabled = false;
+                        importBtn.textContent = 'Імпорт';
                     }
                 };
                 reader.readAsText(file);
