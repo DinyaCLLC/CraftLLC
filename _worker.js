@@ -136,6 +136,38 @@ class Storage {
     }
     return keys;
   }
+
+  async getAllData() {
+    const data = {};
+    const type = await this.getType();
+    
+    if (type === 'd1' && this.env.D1) {
+      try {
+        const res = await this.env.D1.prepare("SELECT key, value FROM kv_store").all();
+        if (res.results) {
+          res.results.forEach(r => {
+            data[r.key] = r.value;
+          });
+        }
+      } catch (e) {}
+      // We also need to add db_type from KV
+      data['db_type'] = await this.env.DB.get('db_type');
+    } else {
+        let cursor = null;
+        do {
+            // list({ values: true }) exists in KV but has severe limits, 
+            // so we still need to get them, but let's do it in chunks to avoid subrequest limit
+            // Actually, for KV we have to do it one by one, but we can try to be smart.
+            // But Cloudflare Free has 50 subrequests limit. 
+            const listRes = await this.env.DB.list({ cursor });
+            for (const key of listRes.keys) {
+                data[key.name] = await this.env.DB.get(key.name);
+            }
+            cursor = listRes.cursor;
+        } while (cursor);
+    }
+    return data;
+  }
 }
 
 function validateRecipe(recipe) {
@@ -436,18 +468,18 @@ ${githubCode}`;
     if (cleanPath === "api/admin/db/export" && request.method === "GET") {
         if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
         
-        const data = {};
-        const keys = await storage.listKeys();
-        for (const key of keys) {
-            data[key] = await storage.get(key);
+        try {
+            const data = await storage.getAllData();
+            return new Response(JSON.stringify(data), {
+                headers: {
+                    "Content-Type": "application/octet-stream",
+                    "Content-Disposition": `attachment; filename="db_export_${new Date().toISOString().slice(0,10)}.json"`,
+                    ...corsHeaders
+                }
+            });
+        } catch (e) {
+            return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
         }
-        return new Response(JSON.stringify(data), {
-            headers: {
-                "Content-Type": "application/octet-stream",
-                "Content-Disposition": `attachment; filename="db_export_${new Date().toISOString().slice(0,10)}.json"`,
-                ...corsHeaders
-            }
-        });
     }
 
     // 18. DB Import
