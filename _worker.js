@@ -443,7 +443,7 @@ ${githubCode}`;
         }
         return new Response(JSON.stringify(data), {
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/octet-stream",
                 "Content-Disposition": `attachment; filename="db_export_${new Date().toISOString().slice(0,10)}.json"`,
                 ...corsHeaders
             }

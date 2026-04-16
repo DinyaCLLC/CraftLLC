@@ -972,40 +972,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             updateDBStatus();
 
-            document.getElementById('dbExportBtn').onclick = async () => {
-                const btn = document.getElementById('dbExportBtn');
-                const originalText = btn.textContent;
-                btn.disabled = true;
-                btn.textContent = 'Експорт...';
-                
-                try {
-                    const res = await fetch('/api/admin/db/export', {
-                        credentials: 'include'
-                    });
-                    if (!res.ok) throw new Error('Помилка сервера: ' + res.status);
-                    
-                    const blob = await res.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    
-                    // Direct trigger
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = `db_export_${new Date().toISOString().slice(0,10)}.json`;
-                    document.body.appendChild(a);
-                    a.click();
-                    
-                    // Cleanup
-                    setTimeout(() => {
-                        window.URL.revokeObjectURL(url);
-                        document.body.removeChild(a);
-                    }, 100);
-                } catch (err) {
-                    alert('Помилка при експорті: ' + err.message);
-                } finally {
-                    btn.disabled = false;
-                    btn.textContent = originalText;
-                }
+            document.getElementById('dbExportBtn').onclick = () => {
+                // Пряме завантаження через приховане посилання (найнадійніше)
+                const a = document.createElement('a');
+                a.href = '/api/admin/db/export';
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => document.body.removeChild(a), 100);
             };
 
             document.getElementById('dbImportBtn').onclick = () => {
