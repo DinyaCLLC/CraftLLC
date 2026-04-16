@@ -165,10 +165,12 @@ export default {
     const cleanPath = url.pathname.replace(/^\/+|\/+$/g, '');
 
     // CORS Headers
+    const origin = request.headers.get("Origin") || "https://craftllc.pages.dev";
     const corsHeaders = {
-      "Access-Control-Allow-Origin": "https://craftllc.pages.dev",
+      "Access-Control-Allow-Origin": origin,
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Credentials": "true"
     };
 
     if (request.method === "OPTIONS") {

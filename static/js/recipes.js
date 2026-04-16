@@ -922,7 +922,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // DB Management Logic
             async function updateDBStatus() {
-                const res = await fetch('/api/admin/db/status');
+                const res = await fetch('/api/admin/db/status', { credentials: 'include' });
                 if (!res.ok) return;
                 const status = await res.json();
                 
@@ -943,7 +943,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         const sRes = await fetch('/api/admin/db/switch', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ type: newType })
+                            body: JSON.stringify({ type: newType }),
+                            credentials: 'include'
                         });
                         if (sRes.ok) {
                             alert('Тип БД змінено!');
@@ -955,7 +956,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (!confirm('Ви впевнені, що хочете скопіювати всі дані з KV в D1? Це перезапише існуючі дані в D1.')) return;
                         migrateBtn.disabled = true;
                         migrateBtn.textContent = 'Міграція...';
-                        const mRes = await fetch('/api/admin/db/migrate', { method: 'POST' });
+                        const mRes = await fetch('/api/admin/db/migrate', { 
+                            method: 'POST',
+                            credentials: 'include'
+                        });
                         if (mRes.ok) {
                             alert('Дані успішно мігровано в D1!');
                         } else {
@@ -975,18 +979,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.textContent = 'Експорт...';
                 
                 try {
-                    const res = await fetch('/api/admin/db/export');
+                    const res = await fetch('/api/admin/db/export', {
+                        credentials: 'include'
+                    });
                     if (!res.ok) throw new Error('Помилка сервера: ' + res.status);
                     
                     const blob = await res.blob();
                     const url = window.URL.createObjectURL(blob);
+                    
+                    // Direct trigger
                     const a = document.createElement('a');
+                    a.style.display = 'none';
                     a.href = url;
                     a.download = `db_export_${new Date().toISOString().slice(0,10)}.json`;
                     document.body.appendChild(a);
                     a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
+                    
+                    // Cleanup
+                    setTimeout(() => {
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                    }, 100);
                 } catch (err) {
                     alert('Помилка при експорті: ' + err.message);
                 } finally {
@@ -1011,7 +1024,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         const iRes = await fetch('/api/admin/db/import', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify(json)
+                            body: JSON.stringify(json),
+                            credentials: 'include'
                         });
                         if (iRes.ok) {
                             alert('Імпорт успішний!');
