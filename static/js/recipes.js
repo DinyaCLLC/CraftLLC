@@ -969,7 +969,30 @@ document.addEventListener("DOMContentLoaded", () => {
             updateDBStatus();
 
             document.getElementById('dbExportBtn').onclick = async () => {
-                location.href = '/api/admin/db/export';
+                const btn = document.getElementById('dbExportBtn');
+                const originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Експорт...';
+                
+                try {
+                    const res = await fetch('/api/admin/db/export');
+                    if (!res.ok) throw new Error('Помилка сервера: ' + res.status);
+                    
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `db_export_${new Date().toISOString().slice(0,10)}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } catch (err) {
+                    alert('Помилка при експорті: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
             };
 
             document.getElementById('dbImportBtn').onclick = () => {

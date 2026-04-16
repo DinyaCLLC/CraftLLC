@@ -298,28 +298,28 @@ ${githubCode}`;
 
     // 10. Migrate/Import Recipes
     if (cleanPath === "api/admin/recipes/migrate" && request.method === "POST") {
-        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
         
         try {
             const recipes = await request.json();
             if (!Array.isArray(recipes)) {
-                return new Response(JSON.stringify({ error: "Invalid format" }), { status: 400 });
+                return new Response(JSON.stringify({ error: "Invalid format" }), { status: 400, headers: corsHeaders });
             }
             await storage.put('recipes_data', JSON.stringify(recipes));
-            return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+            return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
         } catch (e) {
-             return new Response(JSON.stringify({ error: "Migration failed" }), { status: 500 });
+             return new Response(JSON.stringify({ error: "Migration failed" }), { status: 500, headers: corsHeaders });
         }
     }
 
     // 11. Add Recipe
     if (cleanPath === "api/admin/recipes/add" && request.method === "POST") {
-        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
         
         try {
             const newRecipe = await request.json();
             const validationError = validateRecipe(newRecipe);
-            if (validationError) return new Response(JSON.stringify({ error: validationError }), { status: 400 });
+            if (validationError) return new Response(JSON.stringify({ error: validationError }), { status: 400, headers: corsHeaders });
 
             const recipesStr = await storage.get('recipes_data');
             let recipes = recipesStr ? JSON.parse(recipesStr) : [];
@@ -328,20 +328,20 @@ ${githubCode}`;
             recipes.unshift(newRecipe);
             
             await storage.put('recipes_data', JSON.stringify(recipes));
-            return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+            return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
         } catch (e) {
-            return new Response(JSON.stringify({ error: "Add failed" }), { status: 500 });
+            return new Response(JSON.stringify({ error: "Add failed" }), { status: 500, headers: corsHeaders });
         }
     }
 
     // 12. Edit Recipe
     if (cleanPath === "api/admin/recipes/edit" && request.method === "POST") {
-        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
         
         try {
             const { index, recipe } = await request.json();
             const validationError = validateRecipe(recipe);
-            if (validationError) return new Response(JSON.stringify({ error: validationError }), { status: 400 });
+            if (validationError) return new Response(JSON.stringify({ error: validationError }), { status: 400, headers: corsHeaders });
 
             const recipesStr = await storage.get('recipes_data');
             let recipes = recipesStr ? JSON.parse(recipesStr) : [];
@@ -349,18 +349,18 @@ ${githubCode}`;
             if (index >= 0 && index < recipes.length) {
                 recipes[index] = recipe;
                 await storage.put('recipes_data', JSON.stringify(recipes));
-                return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+                return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
             } else {
-                return new Response(JSON.stringify({ error: "Recipe not found" }), { status: 404 });
+                return new Response(JSON.stringify({ error: "Recipe not found" }), { status: 404, headers: corsHeaders });
             }
         } catch (e) {
-            return new Response(JSON.stringify({ error: "Edit failed" }), { status: 500 });
+            return new Response(JSON.stringify({ error: "Edit failed" }), { status: 500, headers: corsHeaders });
         }
     }
 
     // 13. Delete Recipe
     if (cleanPath === "api/admin/recipes/delete" && request.method === "POST") {
-        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
          
         try {
             const { index } = await request.json();
@@ -370,12 +370,12 @@ ${githubCode}`;
             if (index >= 0 && index < recipes.length) {
                 recipes.splice(index, 1);
                 await storage.put('recipes_data', JSON.stringify(recipes));
-                return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+                return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
             } else {
-                return new Response(JSON.stringify({ error: "Recipe not found" }), { status: 404 });
+                return new Response(JSON.stringify({ error: "Recipe not found" }), { status: 404, headers: corsHeaders });
             }
         } catch (e) {
-            return new Response(JSON.stringify({ error: "Delete failed" }), { status: 500 });
+            return new Response(JSON.stringify({ error: "Delete failed" }), { status: 500, headers: corsHeaders });
         }
     }
 
@@ -383,51 +383,56 @@ ${githubCode}`;
     
     // 14. DB Status
     if (cleanPath === "api/admin/db/status" && request.method === "GET") {
-        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
         return new Response(JSON.stringify({
             type: await storage.getType(),
             d1_available: !!env.D1
-        }), { headers: { "Content-Type": "application/json" }});
+        }), { headers: { "Content-Type": "application/json", ...corsHeaders }});
     }
 
     // 15. DB Switch
     if (cleanPath === "api/admin/db/switch" && request.method === "POST") {
-        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
         const { type } = await request.json();
-        if (type !== 'kv' && type !== 'd1') return new Response("Invalid type", { status: 400 });
-        if (type === 'd1' && !env.D1) return new Response("D1 not connected", { status: 400 });
+        if (type !== 'kv' && type !== 'd1') return new Response("Invalid type", { status: 400, headers: corsHeaders });
+        if (type === 'd1' && !env.D1) return new Response("D1 not connected", { status: 400, headers: corsHeaders });
         
         await env.DB.put('db_type', type);
-        return new Response(JSON.stringify({ success: true }));
+        return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
     // 16. DB Migrate (KV -> D1)
     if (cleanPath === "api/admin/db/migrate" && request.method === "POST") {
-        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
-        if (!env.D1) return new Response("D1 not connected", { status: 400 });
+        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
+        if (!env.D1) return new Response("D1 not connected", { status: 400, headers: corsHeaders });
 
         try {
-            const keysRes = await env.DB.list();
-            const keys = keysRes.keys.map(k => k.name);
-            
             await env.D1.prepare("CREATE TABLE IF NOT EXISTS kv_store (key TEXT PRIMARY KEY, value TEXT)").run();
             
-            for (const key of keys) {
-                if (key === 'db_type') continue;
-                const value = await env.DB.get(key);
-                if (value) {
-                    await env.D1.prepare("INSERT OR REPLACE INTO kv_store (key, value) VALUES (?, ?)").bind(key, value).run();
+            let cursor = null;
+            let total = 0;
+            do {
+                const keysRes = await env.DB.list({ cursor });
+                for (const k of keysRes.keys) {
+                    if (k.name === 'db_type') continue;
+                    const value = await env.DB.get(k.name);
+                    if (value) {
+                        await env.D1.prepare("INSERT OR REPLACE INTO kv_store (key, value) VALUES (?, ?)").bind(k.name, value).run();
+                        total++;
+                    }
                 }
-            }
-            return new Response(JSON.stringify({ success: true }));
+                cursor = keysRes.cursor;
+            } while (cursor);
+            
+            return new Response(JSON.stringify({ success: true, migrated: total }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
         } catch (e) {
-            return new Response(e.message, { status: 500 });
+            return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
         }
     }
 
     // 17. DB Export
     if (cleanPath === "api/admin/db/export" && request.method === "GET") {
-        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
         
         const data = {};
         const keys = await storage.listKeys();
@@ -437,14 +442,15 @@ ${githubCode}`;
         return new Response(JSON.stringify(data), {
             headers: {
                 "Content-Type": "application/json",
-                "Content-Disposition": `attachment; filename="db_export_${new Date().toISOString().slice(0,10)}.json"`
+                "Content-Disposition": `attachment; filename="db_export_${new Date().toISOString().slice(0,10)}.json"`,
+                ...corsHeaders
             }
         });
     }
 
     // 18. DB Import
     if (cleanPath === "api/admin/db/import" && request.method === "POST") {
-        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
         
         try {
             const data = await request.json();
@@ -452,9 +458,9 @@ ${githubCode}`;
                 if (key === 'db_type') continue;
                 await storage.put(key, typeof value === 'string' ? value : JSON.stringify(value));
             }
-            return new Response(JSON.stringify({ success: true }));
+            return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
         } catch (e) {
-            return new Response(e.message, { status: 500 });
+            return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
         }
     }
 
