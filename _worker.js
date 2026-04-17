@@ -76,9 +76,8 @@ class Storage {
   }
 
   async getType() {
-    if (!this.env.D1) return 'kv';
-    const type = await this.env.DB.get('db_type');
-    return type === 'd1' ? 'd1' : 'kv';
+    if (this.env.D1) return 'd1';
+    return 'kv';
   }
 
   async get(key) {
