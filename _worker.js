@@ -423,17 +423,6 @@ ${githubCode}`;
         }), { headers: { "Content-Type": "application/json", ...corsHeaders }});
     }
 
-    // 15. DB Switch
-    if (cleanPath === "api/admin/db/switch" && request.method === "POST") {
-        if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
-        const { type } = await request.json();
-        if (type !== 'kv' && type !== 'd1') return new Response("Invalid type", { status: 400, headers: corsHeaders });
-        if (type === 'd1' && !env.D1) return new Response("D1 not connected", { status: 400, headers: corsHeaders });
-        
-        await env.DB.put('db_type', type);
-        return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", ...corsHeaders } });
-    }
-
     // 16. DB Migrate (KV -> D1)
     if (cleanPath === "api/admin/db/migrate" && request.method === "POST") {
         if (!(await isAdmin(request))) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });

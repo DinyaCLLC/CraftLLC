@@ -769,7 +769,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         <button id="dbImportBtn" class="small-btn">Імпорт</button>
                         <input type="file" id="dbImportInput" accept=".json" style="display: none;">
                         <button id="dbMigrateD1Btn" class="small-btn" style="display: none; background: #4a4a4a;">Міграція в D1</button>
-                        <button id="dbSwitchBtn" class="small-btn" style="display: none; background: #ffa516; color: #141414;">Перемкнути на ...</button>
                     </div>
                 </div>
                 
@@ -923,7 +922,6 @@ document.addEventListener("DOMContentLoaded", () => {
             // DB Management Elements
             const typeEl = adminContainer.querySelector('#dbTypeStatus');
             const migrateBtn = adminContainer.querySelector('#dbMigrateD1Btn');
-            const switchBtn = adminContainer.querySelector('#dbSwitchBtn');
             const exportBtn = adminContainer.querySelector('#dbExportBtn');
             const importBtn = adminContainer.querySelector('#dbImportBtn');
             const importInput = adminContainer.querySelector('#dbImportInput');
@@ -939,45 +937,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     if (status.d1_available) {
                         migrateBtn.style.display = 'inline-block';
-                        switchBtn.style.display = 'inline-block';
-                        switchBtn.textContent = status.type === 'kv' ? 'Перейти на D1' : 'Повернутись на KV';
-                        switchBtn.dataset.type = status.type;
                     }
                 } catch (err) {
                     typeEl.textContent = "Помилка завантаження статусу";
                 }
             }
             updateDBStatus();
-
-            switchBtn.onclick = async () => {
-                const currentType = switchBtn.dataset.type || 'kv';
-                const newType = currentType === 'kv' ? 'd1' : 'kv';
-                if (!confirm(`Перемкнути базу даних на ${newType.toUpperCase()}?`)) return;
-                
-                switchBtn.disabled = true;
-                const originalText = switchBtn.textContent;
-                switchBtn.textContent = 'Перемикання...';
-                
-                try {
-                    const sRes = await fetch('/api/admin/db/switch', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ type: newType }),
-                        credentials: 'include'
-                    });
-                    if (sRes.ok) {
-                        alert('Тип БД змінено!');
-                        location.reload();
-                    } else {
-                        alert('Помилка при зміні типу БД');
-                    }
-                } catch (err) {
-                    alert('Помилка запиту: ' + err.message);
-                } finally {
-                    switchBtn.disabled = false;
-                    switchBtn.textContent = originalText;
-                }
-            };
             
             migrateBtn.onclick = async () => {
                 if (!confirm('Ви впевнені, що хочете скопіювати всі дані з KV в D1? Це перезапише існуючі дані в D1.')) return;
